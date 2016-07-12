@@ -1,7 +1,12 @@
 use color::{Color, PuyoColor, RealColor};
 
+pub const WIDTH: usize = 6;
+pub const HEIGHT: usize = 12;
+pub const MAP_WIDTH: usize = 8;
+pub const MAP_HEIGHT: usize = 16;
+
 pub struct PlainField<C: Color<C> + Copy + PartialEq<C>> {
-    field: [[C; 16]; 8],
+    field: [[C; MAP_HEIGHT]; MAP_WIDTH],
 }
 
 impl<C: Color<C> + Copy + PartialEq<C>> PlainField<C> {
