@@ -40,31 +40,31 @@ impl<C: Color<C> + Copy + PartialEq<C>> PlainField<C> {
         field
     }
 
-    pub fn color(&self, x: i32, y: i32) -> C {
+    pub fn color(&self, x: usize, y: usize) -> C {
         // self.field[x as usize][y as usize]
 
-        debug_assert!(0 <= x && x < 8);
-        debug_assert!(0 <= y && y < 16);
+        debug_assert!(x < 8);
+        debug_assert!(y < 16);
         unsafe {
-            *self.field.get_unchecked(x as usize).get_unchecked(y as usize)
+            *self.field.get_unchecked(x).get_unchecked(y)
         }
     }
 
-    pub fn set_color(&mut self, x: i32, y: i32, color: C) {
+    pub fn set_color(&mut self, x: usize, y: usize, color: C) {
         // self.field[x as usize][y as usize] = color
 
-        debug_assert!(0 <= x && x < 8);
-        debug_assert!(0 <= y && y < 16);
+        debug_assert!(x < 8);
+        debug_assert!(y < 16);
         unsafe {
-            *self.field.get_unchecked_mut(x as usize).get_unchecked_mut(y as usize) = color
+            *self.field.get_unchecked_mut(x).get_unchecked_mut(y) = color
         }
     }
 
-    pub fn is_empty(&self, x: i32, y: i32) -> bool {
+    pub fn is_empty(&self, x: usize, y: usize) -> bool {
         self.color(x, y) == C::empty_color()
     }
 
-    pub fn is_color(&self, x: i32, y: i32, color: C) -> bool {
+    pub fn is_color(&self, x: usize, y: usize, color: C) -> bool {
         self.color(x, y) == color
     }
 
