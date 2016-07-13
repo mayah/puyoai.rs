@@ -144,6 +144,159 @@ impl<C: Color<C>> PlainField<C> {
         self.fill_same_color_position(x, y, self.color(x, y), &mut head, &mut positions, checker);
         head
     }
+
+    pub fn count_connected_puyos_max4(&self, x: usize, y: usize) -> usize {
+        if y > field::HEIGHT {
+            return 0;
+        }
+
+        let mut left_up = false;
+        let mut left_down = false;
+        let mut right_up = false;
+        let mut right_down = false;
+
+        let mut cnt = 1;
+        let c = self.color(x, y);
+
+        if self.is_color(x - 1, y, c) {
+            if self.is_color(x - 2, y, c) {
+                if self.is_color(x - 3, y, c) {
+                    return 4;
+                }
+                if self.is_color(x - 2, y + 1, c) && y + 1 <= field::HEIGHT {
+                    return 4;
+                }
+                if self.is_color(x - 2, y - 1, c) {
+                    return 4;
+                }
+                cnt += 1;
+            }
+            if self.is_color(x - 1, y + 1, c) && y + 1 <= field::HEIGHT {
+                if self.is_color(x - 2, y + 1, c) {
+                    return 4;
+                }
+                if self.is_color(x - 1, y + 2, c) && y + 2 <= field::HEIGHT {
+                    return 4;
+                }
+                cnt += 1;
+                left_up = true;
+            }
+            if self.is_color(x - 1, y - 1, c) {
+                if self.is_color(x - 2, y - 1, c) || self.is_color(x - 1, y - 2, c) {
+                    return 4;
+                }
+                cnt += 1;
+                left_down = true;
+            }
+            cnt += 1;
+        }
+
+        if self.is_color(x + 1, y, c) {
+            if self.is_color(x + 2, y, c) {
+                if self.is_color(x + 3, y, c) {
+                    return 4;
+                }
+                if self.is_color(x + 2, y + 1, c) && y + 1 <= field::HEIGHT {
+                    return 4;
+                }
+                if self.is_color(x + 2, y - 1, c) {
+                    return 4;
+                }
+                cnt += 1;
+            }
+            if self.is_color(x + 1, y + 1, c) && y + 1 <= field::HEIGHT {
+                if self.is_color(x + 2, y + 1, c) {
+                    return 4;
+                }
+                if self.is_color(x + 1, y + 2, c) && y + 2 <= field::HEIGHT {
+                    return 4;
+                }
+                cnt += 1;
+                right_up = true;
+            }
+            if self.is_color(x + 1, y - 1, c) {
+                if self.is_color(x + 2, y - 1, c) {
+                    return 4;
+                }
+                if self.is_color(x + 1, y - 2, c) {
+                    return 4;
+                }
+                cnt += 1;
+                right_down = true;
+            }
+            cnt += 1;
+        }
+
+        if self.is_color(x, y - 1, c) {
+            if self.is_color(x, y - 2, c) {
+                if self.is_color(x, y - 3, c) {
+                    return 4;
+                }
+                if self.is_color(x - 1, y - 2, c) {
+                    return 4;
+                }
+                if self.is_color(x + 1, y - 2, c) {
+                    return 4;
+                }
+                cnt += 1;
+            }
+            if self.is_color(x - 1, y - 1, c) && !left_down {
+                if self.is_color(x - 2, y - 1, c) {
+                    return 4;
+                }
+                if self.is_color(x - 1, y - 2, c) {
+                    return 4;
+                }
+                cnt += 1;
+            }
+            if self.is_color(x + 1, y - 1, c) && !right_down {
+                if self.is_color(x + 2, y - 1, c) {
+                    return 4;
+                }
+                if self.is_color(x + 1, y - 2, c) {
+                    return 4;
+                }
+                cnt += 1;
+            }
+            cnt += 1;
+        }
+
+        if self.is_color(x, y + 1, c) && y + 1 <= field::HEIGHT {
+            if self.is_color(x, y + 2, c) && y + 2 <= field::HEIGHT {
+                if self.is_color(x, y + 3, c) && y + 3 <= field::HEIGHT {
+                    return 4;
+                }
+                if self.is_color(x - 1, y + 2, c) {
+                    return 4;
+                }
+                if self.is_color(x + 1, y + 2, c) {
+                    return 4;
+                }
+                cnt += 1;
+            }
+            if self.is_color(x - 1, y + 1, c) && !left_up {
+                if self.is_color(x - 2, y + 1, c) {
+                    return 4;
+                }
+                if self.is_color(x - 1, y + 2, c) && y + 2 <= field::HEIGHT {
+                    return 4;
+                }
+                cnt += 1;
+            }
+            if self.is_color(x + 1, y + 1, c) && !right_up {
+                if self.is_color(x + 2, y + 1, c) {
+                    return 4;
+                }
+                if self.is_color(x + 1, y + 2, c) && y + 2 <= field::HEIGHT {
+                    return 4;
+                }
+                cnt += 1;
+            }
+            cnt += 1;
+        }
+
+        cnt
+    }
 }
 
 impl<C> PartialEq<PlainField<C>> for PlainField<C>
@@ -320,6 +473,7 @@ mod tests {
                     }
 
                     assert_eq!(4, pf.count_connected_puyos(x, y));
+                    assert_eq!(4, pf.count_connected_puyos_max4(x, y));
                 }
             }
         }
