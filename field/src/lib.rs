@@ -1,7 +1,10 @@
 pub mod color;
 pub mod field;
-pub mod plain_field;
 pub mod field_checker;
+pub mod plain_field;
+pub mod position;
 
 pub use plain_field::PuyoPlainField;
 pub use plain_field::RealPlainField;
+pub use field_checker::FieldChecker;
+pub use position::Position;

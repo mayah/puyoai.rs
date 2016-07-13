@@ -1,5 +1,7 @@
 use color::{Color, PuyoColor, RealColor};
 use field;
+use field_checker::FieldChecker;
+use position::Position;
 
 pub struct PlainField<C: Color<C> + Copy + PartialEq<C>> {
     field: [[C; field::MAP_HEIGHT]; field::MAP_WIDTH],
@@ -85,6 +87,62 @@ impl<C: Color<C> + Copy + PartialEq<C>> PlainField<C> {
                 h += 1;
             }
         }
+    }
+
+    pub fn fill_same_color_position(&self, x: usize, y: usize, c: C,
+                                    head: &mut usize, queue: &mut [Position; 72],
+                                    checker: &mut FieldChecker) {
+        if y > field::HEIGHT {
+            return;
+        }
+
+        let mut write_head = *head;
+        let mut read_head = *head;
+
+        debug_assert!(!checker.get(x, y));
+        queue[write_head] = Position::new(x, y);
+        write_head += 1;
+        checker.set(x, y);
+
+        while write_head != read_head {
+            let p = queue[read_head];
+            read_head += 1;
+
+            if self.is_color(p.x + 1, p.y, c) && !checker.get(p.x + 1, p.y) {
+                queue[write_head] = Position::new(p.x + 1, p.y);
+                write_head += 1;
+                checker.set(p.x + 1, p.y);
+            }
+            if self.is_color(p.x - 1, p.y, c) && !checker.get(p.x - 1, p.y) {
+                queue[write_head] = Position::new(p.x - 1, p.y);
+                write_head += 1;
+                checker.set(p.x - 1, p.y);
+            }
+            if self.is_color(p.x, p.y + 1, c) && !checker.get(p.x, p.y + 1) && p.y + 1 <= field::HEIGHT {
+                queue[write_head] = Position::new(p.x, p.y + 1);
+                write_head += 1;
+                checker.set(p.x, p.y + 1);
+            }
+            if self.is_color(p.x, p.y - 1, c) && !checker.get(p.x, p.y - 1) {
+                queue[write_head] = Position::new(p.x, p.y - 1);
+                write_head += 1;
+                checker.set(p.x, p.y - 1);
+            }
+        }
+
+        *head = write_head;
+    }
+
+    pub fn count_connected_puyos(&self, x: usize, y: usize) -> usize {
+        let mut checker = FieldChecker::new();
+        self.count_connected_puyos_with_checker(x, y, &mut checker)
+    }
+
+    pub fn count_connected_puyos_with_checker(&self, x: usize, y: usize, checker: &mut FieldChecker) -> usize {
+        let mut positions = [Position::new(0, 0); 72];
+        let mut head = 0;
+        self.fill_same_color_position(x, y, self.color(x, y), &mut head, &mut positions, checker);
+        head
     }
 }
 
@@ -208,5 +266,62 @@ mod tests {
 
         pf.drop();
         assert!(pf == expected);
+    }
+
+    #[test]
+    fn test_count_connected_puyos() {
+        // I O S Z L J T
+        let fi = PuyoPlainField::from_str(concat!(
+            "R.....",
+            "R.....",
+            "R.....",
+            "R.....",
+            "......",
+            "RRRR.."));
+        let fo = PuyoPlainField::from_str(concat!(
+            "RR....",
+            "RR...."));
+        let fs = PuyoPlainField::from_str(concat!(
+            "....R.",
+            ".RR.RR",
+            "RR...R"));
+        let fz = PuyoPlainField::from_str(concat!(
+            ".....R",
+            "RR..RR",
+            ".RR.R."));
+        let fl = PuyoPlainField::from_str(concat!(
+            "RR....",
+            ".R...R",
+            ".R.RRR",
+            "R.....",
+            "R..RRR",
+            "RR.R.."));
+        let fj = PuyoPlainField::from_str(concat!(
+            "RR....",
+            "R..R..",
+            "R..RRR",
+            ".R....",
+            ".R.RRR",
+            "RR...R"));
+        let ft = PuyoPlainField::from_str(concat!(
+            ".R....",
+            "RR..R.",
+            ".R.RRR",
+            "R.....",
+            "RR.RRR",
+            "R...R."));
+
+        let fields = [fi, fo, fs, fz, fl, fj, ft];
+        for pf in fields.iter() {
+            for x in 1..7 {
+                for y in 1..13 {
+                    if !pf.is_color(x, y, PuyoColor::RED) {
+                        continue;
+                    }
+
+                    assert_eq!(4, pf.count_connected_puyos(x, y));
+                }
+            }
+        }
     }
 }
