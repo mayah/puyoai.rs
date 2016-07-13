@@ -1,4 +1,4 @@
-pub trait Color<T> {
+pub trait Color<T> : Clone + Copy + PartialEq<T> {
     fn empty_color() -> T;
     fn wall_color() -> T;
     fn from_byte(b: u8) -> T;
