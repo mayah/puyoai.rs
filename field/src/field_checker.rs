@@ -1,11 +1,13 @@
+use field;
+
 pub struct FieldChecker {
-    flag: [[bool; 16]; 8]
+    flag: [[bool; field::MAP_HEIGHT]; field::MAP_WIDTH]
 }
 
 impl FieldChecker {
     pub fn new() -> FieldChecker {
         FieldChecker {
-            flag: [[false; 16]; 8],
+            flag: [[false; field::MAP_HEIGHT]; field::MAP_WIDTH],
         }
     }
 
@@ -28,13 +30,14 @@ impl FieldChecker {
 
 #[cfg(test)]
 mod tests {
+    use field;
     use field_checker::FieldChecker;
 
     #[test]
     fn test_initialize() {
         let checker = FieldChecker::new();
-        for x in 0..8 {
-            for y in 0..16 {
+        for x in 0..field::MAP_WIDTH {
+            for y in 0..field::MAP_HEIGHT {
                 assert!(!checker.get(x, y));
             }
         }

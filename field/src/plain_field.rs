@@ -393,8 +393,8 @@ pub type RealPlainField = PlainField<RealColor>;
 mod tests {
     use std::mem;
     use color::PuyoColor;
-    use plain_field::PuyoPlainField;
     use field;
+    use plain_field::PuyoPlainField;
 
     #[test]
     fn test_memory_size() {
