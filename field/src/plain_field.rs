@@ -2,6 +2,7 @@ use color::{Color, PuyoColor, RealColor};
 use field;
 use field_checker::FieldChecker;
 use position::Position;
+use score;
 
 pub struct PlainField<C: Color<C>> {
     field: [[C; field::MAP_HEIGHT]; field::MAP_WIDTH],
@@ -89,15 +90,16 @@ impl<C: Color<C>> PlainField<C> {
         }
     }
 
+    // Returns new head.
     pub fn fill_same_color_position(&self, x: usize, y: usize, c: C,
-                                    head: &mut usize, queue: &mut [Position; 72],
-                                    checker: &mut FieldChecker) {
+                                    head: usize, queue: &mut [Position; 72],
+                                    checker: &mut FieldChecker) -> usize {
         if y > field::HEIGHT {
-            return;
+            return head;
         }
 
-        let mut write_head = *head;
-        let mut read_head = *head;
+        let mut write_head = head;
+        let mut read_head = head;
 
         debug_assert!(!checker.get(x, y));
         queue[write_head] = Position::new(x, y);
@@ -130,7 +132,7 @@ impl<C: Color<C>> PlainField<C> {
             }
         }
 
-        *head = write_head;
+        return write_head;
     }
 
     pub fn count_connected_puyos(&self, x: usize, y: usize) -> usize {
@@ -140,9 +142,7 @@ impl<C: Color<C>> PlainField<C> {
 
     pub fn count_connected_puyos_with_checker(&self, x: usize, y: usize, checker: &mut FieldChecker) -> usize {
         let mut positions = [Position::new(0, 0); 72];
-        let mut head = 0;
-        self.fill_same_color_position(x, y, self.color(x, y), &mut head, &mut positions, checker);
-        head
+        self.fill_same_color_position(x, y, self.color(x, y), 0, &mut positions, checker)
     }
 
     pub fn count_connected_puyos_max4(&self, x: usize, y: usize) -> usize {
@@ -296,6 +296,77 @@ impl<C: Color<C>> PlainField<C> {
         }
 
         cnt
+    }
+
+    pub fn vanish(&mut self, current_chain: i32) -> i32 {
+        let mut checker = FieldChecker::new();
+        // All the positions of erased puyos will be stored here.
+        let mut erase_queue : [Position; 72] = [Position::new(0, 0); 72];
+        let mut erase_queue_head = 0;
+
+        let mut used_colors : [bool; 8] = [false; 8];
+        let mut num_used_colors = 0;
+        let mut long_bonus_coef: i32 = 0;
+
+        for x in 1 .. (field::WIDTH + 1) {
+            for y in 1 .. (field::HEIGHT + 1) {
+                if self.is_empty(x, y) || checker.get(x, y) || !self.color(x, y).is_normal_color() {
+                    continue;
+                }
+
+                let c = self.color(x, y);
+                let new_head = self.fill_same_color_position(x, y, c, erase_queue_head, &mut erase_queue, &mut checker);
+
+                let connected_puyo_num = new_head - erase_queue_head;
+                if connected_puyo_num < 4 {
+                    continue;
+                }
+
+                erase_queue_head = new_head;
+                long_bonus_coef += score::long_bonus(connected_puyo_num as i32);
+                if !used_colors[c.as_usize()] {
+                    num_used_colors += 1;
+                    used_colors[c.as_usize()] = true;
+                }
+            }
+        }
+
+        if erase_queue_head == 0 {
+            return 0;
+        }
+
+        // --- Actually erase the Puyos to be vanished. We erase ojama here also.
+        for i in 0 .. erase_queue_head {
+            let x = erase_queue[i].x;
+            let y = erase_queue[i].y;
+
+            self.set_color(x, y, C::empty_color());
+
+            // Check OJAMA puyos erased
+            if self.is_color(x + 1, y, C::ojama_color()) {
+                self.set_color(x + 1, y, C::empty_color());
+            }
+
+            if self.is_color(x - 1, y, C::ojama_color()) {
+                self.set_color(x - 1, y, C::empty_color());
+            }
+
+            // We don't need to update minHeights here.
+            if self.is_color(x, y + 1, C::ojama_color()) && y + 1 <= field::HEIGHT {
+                self.set_color(x, y + 1, C::empty_color());
+            }
+
+            if self.is_color(x, y - 1, C::ojama_color()) {
+                self.set_color(x, y - 1, C::empty_color());
+            }
+        }
+
+        let rensa_bonus_coef: i32 = score::calculate_rensa_bonus_coef(
+            score::chain_bonus(current_chain),
+            long_bonus_coef,
+            score::color_bonus(num_used_colors)
+        );
+        10 * (erase_queue_head as i32) * rensa_bonus_coef
     }
 }
 

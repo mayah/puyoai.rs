@@ -1,7 +1,11 @@
 pub trait Color<T> : Clone + Copy + PartialEq<T> {
-    fn empty_color() -> T;
-    fn wall_color() -> T;
     fn from_byte(b: u8) -> T;
+    fn empty_color() -> T;
+    fn ojama_color() -> T;
+    fn wall_color() -> T;
+
+    fn as_usize(&self) -> usize;
+    fn is_normal_color(&self) -> bool;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -17,11 +21,6 @@ pub enum PuyoColor {
 }
 
 impl PuyoColor {
-    pub fn is_normal_color(&self) -> bool {
-        let x = *self as i32;
-        (x & 4) != 0
-    }
-
     pub fn to_string(&self) -> &'static str {
         match *self {
             PuyoColor::EMPTY  => "EMPTY",
@@ -50,14 +49,6 @@ impl PuyoColor {
 }
 
 impl Color<PuyoColor> for PuyoColor {
-    fn empty_color() -> PuyoColor {
-        PuyoColor::EMPTY
-    }
-
-    fn wall_color() -> PuyoColor {
-        PuyoColor::WALL
-    }
-
     fn from_byte(c: u8) -> PuyoColor {
         match c {
             b' ' | b'.' => PuyoColor::EMPTY,
@@ -70,6 +61,27 @@ impl Color<PuyoColor> for PuyoColor {
             b'G' | b'g' => PuyoColor::GREEN,
             _ => PuyoColor::EMPTY,
         }
+    }
+
+    fn empty_color() -> PuyoColor {
+        PuyoColor::EMPTY
+    }
+
+    fn ojama_color() -> PuyoColor {
+        PuyoColor::OJAMA
+    }
+
+    fn wall_color() -> PuyoColor {
+        PuyoColor::WALL
+    }
+
+    fn as_usize(&self) -> usize {
+        *self as usize
+    }
+
+    fn is_normal_color(&self) -> bool {
+        let x = *self as i32;
+        (x & 4) != 0
     }
 }
 
