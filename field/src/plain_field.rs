@@ -323,6 +323,7 @@ mod tests {
     use std::mem;
     use color::PuyoColor;
     use plain_field::PuyoPlainField;
+    use field;
 
     #[test]
     fn test_memory_size() {
@@ -466,8 +467,8 @@ mod tests {
 
         let fields = [fi, fo, fs, fz, fl, fj, ft];
         for pf in fields.iter() {
-            for x in 1..7 {
-                for y in 1..13 {
+            for x in 1 .. (field::WIDTH + 1) {
+                for y in 1 .. (field::HEIGHT + 1) {
                     if !pf.is_color(x, y, PuyoColor::RED) {
                         continue;
                     }
@@ -476,6 +477,32 @@ mod tests {
                     assert_eq!(4, pf.count_connected_puyos_max4(x, y));
                 }
             }
+        }
+    }
+
+    #[test]
+    fn test_count_connected_puyos_edge_case() {
+        let pf = PuyoPlainField::from_str(concat!(
+            "RRRBBB",
+            "RRRBBB", // 12
+            "......",
+            "......",
+            "......",
+            "......", // 8
+            "......",
+            "......",
+            "......",
+            "......", // 4
+            "......",
+            "......",
+            "......",
+        ));
+
+        for x in 1 .. (field::WIDTH + 1) {
+            assert_eq!(3, pf.count_connected_puyos(x, 12));
+            assert_eq!(3, pf.count_connected_puyos_max4(x, 12));
+            assert_eq!(0, pf.count_connected_puyos(x, 13));
+            assert_eq!(0, pf.count_connected_puyos_max4(x, 13));
         }
     }
 }
