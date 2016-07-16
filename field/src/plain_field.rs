@@ -1,8 +1,11 @@
 use color::{Color, PuyoColor, RealColor};
 use field;
 use field_checker::FieldChecker;
+use frame;
 use position::Position;
+use rensa::RensaResult;
 use score;
+use std::cmp;
 
 pub struct PlainField<C: Color<C>> {
     field: [[C; field::MAP_HEIGHT]; field::MAP_WIDTH],
@@ -71,16 +74,21 @@ impl<C: Color<C>> PlainField<C> {
         self.color(x, y) == color
     }
 
-    pub fn drop(&mut self) {
+    // Returns the number of max drops.
+    pub fn drop(&mut self) -> i32 {
+        let mut max_drops = 0;
         for x in 1 .. 7 {
             let mut h = 1;
+            let mut drops = 0;
             for y in 1 .. 14 {
                 if self.is_empty(x, y) {
+                    drops += 1;
                     continue;
                 }
                 let c = self.color(x, y);
                 self.set_color(x, h, c);
                 h += 1;
+                max_drops = cmp::max(max_drops, drops);
             }
 
             while h <= 13 {
@@ -88,6 +96,8 @@ impl<C: Color<C>> PlainField<C> {
                 h += 1;
             }
         }
+
+        max_drops
     }
 
     // Returns new head.
@@ -336,7 +346,7 @@ impl<C: Color<C>> PlainField<C> {
         }
 
         // --- Actually erase the Puyos to be vanished. We erase ojama here also.
-        for i in 0 .. erase_queue_head {
+        for i in 0..erase_queue_head {
             let x = erase_queue[i].x;
             let y = erase_queue[i].y;
 
@@ -368,10 +378,36 @@ impl<C: Color<C>> PlainField<C> {
         );
         10 * (erase_queue_head as i32) * rensa_bonus_coef
     }
+
+    pub fn simulate(&mut self) -> RensaResult {
+        let mut chains = 1;
+        let mut score = 0;
+        let mut frames = 0;
+        let mut quick = false;
+
+        loop {
+            let nth_chain_score = self.vanish(chains);
+            if nth_chain_score == 0 {
+                break;
+            }
+
+            chains += 1;
+            score += nth_chain_score;
+            frames += frame::FRAMES_VANISH_ANIMATION;
+            let max_drops = self.drop();
+            if max_drops > 0 {
+                frames += frame::frames_to_drop_fast(max_drops) + frame::grounding();
+            } else {
+                quick = true;
+                break;
+            }
+        }
+
+        RensaResult::new(chains - 1, score, frames, quick)
+    }
 }
 
-impl<C> PartialEq<PlainField<C>> for PlainField<C>
-where C: Color<C> {
+impl<C> PartialEq<PlainField<C>> for PlainField<C> where C: Color<C> {
     fn eq(&self, other: &PlainField<C>) -> bool {
         // TODO(mayah): Would be good memory comparison.
         for x in 0..8 {
