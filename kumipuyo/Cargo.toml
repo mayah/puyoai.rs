@@ -1,0 +1,7 @@
+[package]
+name = "kumipuyo"
+version = "0.1.0"
+authors = ["mayah"]
+
+[dependencies]
+field = { path = "../field" }
