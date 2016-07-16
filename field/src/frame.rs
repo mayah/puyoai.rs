@@ -39,7 +39,7 @@ pub fn grounding() -> i32 {
 }
 
 pub fn frames_to_drop_fast(num_drop: i32) -> i32 {
-    FRAMES_TO_DROP[num_drop as usize]
+    FRAMES_TO_DROP_FAST[num_drop as usize]
 }
 
 // Returns the number of animation frames when ojama is grounding

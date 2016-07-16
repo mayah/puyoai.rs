@@ -5,6 +5,7 @@ pub trait Color<T> : Clone + Copy + PartialEq<T> {
     fn wall_color() -> T;
 
     fn as_usize(&self) -> usize;
+    fn to_char(&self) -> char;
     fn is_normal_color(&self) -> bool;
 }
 
@@ -31,19 +32,6 @@ impl PuyoColor {
             PuyoColor::BLUE   => "BLUE",
             PuyoColor::YELLOW => "YELLOW",
             PuyoColor::GREEN  => "GREEN",
-        }
-    }
-
-    pub fn to_char(&self) -> char {
-        match *self {
-            PuyoColor::EMPTY  => ' ',
-            PuyoColor::OJAMA  => 'O',
-            PuyoColor::WALL   => '#',
-            PuyoColor::IRON   => '&',
-            PuyoColor::RED    => 'R',
-            PuyoColor::BLUE   => 'B',
-            PuyoColor::YELLOW => 'Y',
-            PuyoColor::GREEN  => 'G',
         }
     }
 }
@@ -82,6 +70,19 @@ impl Color<PuyoColor> for PuyoColor {
     fn is_normal_color(&self) -> bool {
         let x = *self as i32;
         (x & 4) != 0
+    }
+
+    fn to_char(&self) -> char {
+        match *self {
+            PuyoColor::EMPTY  => ' ',
+            PuyoColor::OJAMA  => 'O',
+            PuyoColor::WALL   => '#',
+            PuyoColor::IRON   => '&',
+            PuyoColor::RED    => 'R',
+            PuyoColor::BLUE   => 'B',
+            PuyoColor::YELLOW => 'Y',
+            PuyoColor::GREEN  => 'G',
+        }
     }
 }
 

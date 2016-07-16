@@ -1,3 +1,6 @@
+use std::cmp;
+use std::fmt;
+
 use color::{Color, PuyoColor, RealColor};
 use field;
 use field_checker::FieldChecker;
@@ -5,7 +8,6 @@ use frame;
 use position::Position;
 use rensa::RensaResult;
 use score;
-use std::cmp;
 
 pub struct PlainField<C: Color<C>> {
     field: [[C; field::MAP_HEIGHT]; field::MAP_WIDTH],
@@ -396,7 +398,7 @@ impl<C: Color<C>> PlainField<C> {
             frames += frame::FRAMES_VANISH_ANIMATION;
             let max_drops = self.drop();
             if max_drops > 0 {
-                frames += frame::frames_to_drop_fast(max_drops) + frame::grounding();
+                frames += frame::frames_to_drop_fast(max_drops) + frame::FRAMES_GROUNDING;
             } else {
                 quick = true;
                 break;
@@ -419,6 +421,21 @@ impl<C> PartialEq<PlainField<C>> for PlainField<C> where C: Color<C> {
         }
 
         true
+    }
+}
+
+impl<C> fmt::Debug for PlainField<C> where C: Color<C> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut s = String::new();
+
+        for y in (0..(field::MAP_HEIGHT)).rev() {
+            for x in 0..(field::MAP_WIDTH) {
+                s.push(self.color(x, y).to_char());
+            }
+            s.push('\n');
+        }
+
+        write!(f, "{}", s)
     }
 }
 
