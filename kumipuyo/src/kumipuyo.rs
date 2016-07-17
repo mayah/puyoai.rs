@@ -1,4 +1,4 @@
-use field::color::PuyoColor;
+use color::PuyoColor;
 
 pub struct Kumipuyo {
     pub axis: PuyoColor,

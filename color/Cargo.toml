@@ -1,7 +1,6 @@
 [package]
-name = "kumipuyo"
+name = "color"
 version = "0.1.0"
 authors = ["mayah"]
 
 [dependencies]
-color = { path = "../color" }

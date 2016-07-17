@@ -1,4 +1,5 @@
-pub mod color;
+extern crate color;
+
 pub mod field;
 pub mod field_checker;
 pub mod frame;
