@@ -1,6 +1,12 @@
+#![feature(platform_intrinsics)]
+
+extern crate simd;
+
 extern crate color;
+extern crate simdext;
 
 pub mod field;
+mod field_bit;
 pub mod field_checker;
 pub mod frame;
 pub mod plain_field;

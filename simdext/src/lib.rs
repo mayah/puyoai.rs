@@ -15,3 +15,7 @@ pub fn mm_andnot_epu16(x: simd::u16x8, y: simd::u16x8) -> simd::u16x8 {
 pub fn mm_and_epu16(x: simd::u16x8, y: simd::u16x8) -> simd::u16x8 {
     x & y
 }
+
+pub fn mm_or_epu16(x: simd::u16x8, y: simd::u16x8) -> simd::u16x8 {
+    x | y
+}

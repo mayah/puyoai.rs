@@ -4,4 +4,8 @@ version = "0.1.0"
 authors = ["mayah"]
 
 [dependencies]
+simd = { git = "https://github.com/huonw/simd" }
+llvmint = { git = "https://github.com/huonw/llvmint" }
+
+simdext = { path = "../simdext" }
 color = { path = "../color" }
