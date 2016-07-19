@@ -1,5 +1,7 @@
 use color::PuyoColor;
+use field;
 use field_bit::FieldBit;
+use plain_field::PuyoPlainField;
 use simd;
 use simdext::*;
 use std::mem;
@@ -16,6 +18,23 @@ impl BitField {
                 FieldBit::from_values(0xFFFF, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0xFFFF),
                 FieldBit::new_empty(), ]
         }
+    }
+
+    pub fn from_plain_field(pf: PuyoPlainField) -> BitField {
+        let mut bf = BitField::new();
+
+        // TODO(mayah): We have better algorithm here.
+        for x in 0 .. field::WIDTH {
+            for y in 0 .. field::HEIGHT {
+                bf.set_color(x, y, pf.color(x, y))
+            }
+        }
+
+        bf
+    }
+
+    pub fn from_str(s: &str) -> BitField {
+        BitField::from_plain_field(PuyoPlainField::from_str(s))
     }
 
     pub fn color(&self, x: usize, y: usize) -> PuyoColor {
@@ -95,6 +114,21 @@ mod tests {
     }
 
     #[test]
+    fn test_from_str() {
+        let bf = BitField::from_str(concat!(
+            "RGBRGB",
+            "RGBRGB",
+            "RGBRGB"));
+
+        assert_eq!(bf.color(1, 1), PuyoColor::RED);
+        assert_eq!(bf.color(2, 1), PuyoColor::GREEN);
+        assert_eq!(bf.color(3, 1), PuyoColor::BLUE);
+        assert_eq!(bf.color(1, 3), PuyoColor::RED);
+        assert_eq!(bf.color(2, 3), PuyoColor::GREEN);
+        assert_eq!(bf.color(3, 3), PuyoColor::BLUE);
+    }
+
+    #[test]
     fn test_set_color() {
         let colors = [
             PuyoColor::EMPTY, PuyoColor::OJAMA, PuyoColor::WALL, PuyoColor::IRON,
@@ -105,6 +139,66 @@ mod tests {
         for c in colors.iter() {
             bf.set_color(1, 1, *c);
             assert_eq!(*c, bf.color(1, 1));
+        }
+    }
+
+    #[test]
+    fn test_bits() {
+        let bf = BitField::from_str(concat!(
+            "OOOOOO",
+            "RGBRGB",
+            "RGBRGB",
+            "RGBRGB"));
+
+        let red = bf.bits(PuyoColor::RED);
+        let blue = bf.bits(PuyoColor::BLUE);
+        let green = bf.bits(PuyoColor::GREEN);
+        let yellow = bf.bits(PuyoColor::YELLOW);
+        let ojama = bf.bits(PuyoColor::OJAMA);
+
+        for x in 1 .. 7 {
+            for y in 1 .. 5 {
+                match bf.color(x, y) {
+                    PuyoColor::RED => {
+                        assert!(red.get(x, y));
+                        assert!(!blue.get(x, y));
+                        assert!(!yellow.get(x, y));
+                        assert!(!green.get(x, y));
+                        assert!(!ojama.get(x, y));
+                    },
+                    PuyoColor::BLUE => {
+                        assert!(!red.get(x, y));
+                        assert!(blue.get(x, y));
+                        assert!(!yellow.get(x, y));
+                        assert!(!green.get(x, y));
+                        assert!(!ojama.get(x, y));
+                    },
+                    PuyoColor::YELLOW => {
+                        assert!(!red.get(x, y));
+                        assert!(!blue.get(x, y));
+                        assert!(yellow.get(x, y));
+                        assert!(!green.get(x, y));
+                        assert!(!ojama.get(x, y));
+                    },
+                    PuyoColor::GREEN => {
+                        assert!(!red.get(x, y));
+                        assert!(!blue.get(x, y));
+                        assert!(!yellow.get(x, y));
+                        assert!(green.get(x, y));
+                        assert!(!ojama.get(x, y));
+                    },
+                    PuyoColor::OJAMA => {
+                        assert!(!red.get(x, y));
+                        assert!(!blue.get(x, y));
+                        assert!(!yellow.get(x, y));
+                        assert!(!green.get(x, y));
+                        assert!(ojama.get(x, y));
+                    },
+                    _ => {
+                        // skip
+                    }
+                }
+            }
         }
     }
 }
