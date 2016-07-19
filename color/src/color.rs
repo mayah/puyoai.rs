@@ -86,6 +86,11 @@ impl Color<PuyoColor> for PuyoColor {
     }
 }
 
+pub const ALL_PUYO_COLORS: [PuyoColor; 8] = [
+    PuyoColor::EMPTY, PuyoColor::OJAMA, PuyoColor::WALL, PuyoColor::IRON,
+    PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN,
+];
+
 #[cfg(test)]
 mod tests {
     use super::*;

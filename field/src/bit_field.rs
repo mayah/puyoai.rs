@@ -24,8 +24,8 @@ impl BitField {
         let mut bf = BitField::new();
 
         // TODO(mayah): We have better algorithm here.
-        for x in 0 .. field::WIDTH {
-            for y in 0 .. field::HEIGHT {
+        for x in 0 .. field::MAP_WIDTH {
+            for y in 0 .. field::MAP_HEIGHT {
                 bf.set_color(x, y, pf.color(x, y))
             }
         }
@@ -97,7 +97,9 @@ impl BitField {
 #[cfg(test)]
 mod tests {
     use super::BitField;
+    use color;
     use color::PuyoColor;
+    use field;
 
     #[test]
     fn test_initial() {
@@ -145,58 +147,17 @@ mod tests {
     #[test]
     fn test_bits() {
         let bf = BitField::from_str(concat!(
+            "&&&&&&",
             "OOOOOO",
-            "RGBRGB",
-            "RGBRGB",
-            "RGBRGB"));
+            "YYYYYY",
+            "BBBBBB",
+            "GGGGGG",
+            "RRRRRR"));
 
-        let red = bf.bits(PuyoColor::RED);
-        let blue = bf.bits(PuyoColor::BLUE);
-        let green = bf.bits(PuyoColor::GREEN);
-        let yellow = bf.bits(PuyoColor::YELLOW);
-        let ojama = bf.bits(PuyoColor::OJAMA);
-
-        for x in 1 .. 7 {
-            for y in 1 .. 5 {
-                match bf.color(x, y) {
-                    PuyoColor::RED => {
-                        assert!(red.get(x, y));
-                        assert!(!blue.get(x, y));
-                        assert!(!yellow.get(x, y));
-                        assert!(!green.get(x, y));
-                        assert!(!ojama.get(x, y));
-                    },
-                    PuyoColor::BLUE => {
-                        assert!(!red.get(x, y));
-                        assert!(blue.get(x, y));
-                        assert!(!yellow.get(x, y));
-                        assert!(!green.get(x, y));
-                        assert!(!ojama.get(x, y));
-                    },
-                    PuyoColor::YELLOW => {
-                        assert!(!red.get(x, y));
-                        assert!(!blue.get(x, y));
-                        assert!(yellow.get(x, y));
-                        assert!(!green.get(x, y));
-                        assert!(!ojama.get(x, y));
-                    },
-                    PuyoColor::GREEN => {
-                        assert!(!red.get(x, y));
-                        assert!(!blue.get(x, y));
-                        assert!(!yellow.get(x, y));
-                        assert!(green.get(x, y));
-                        assert!(!ojama.get(x, y));
-                    },
-                    PuyoColor::OJAMA => {
-                        assert!(!red.get(x, y));
-                        assert!(!blue.get(x, y));
-                        assert!(!yellow.get(x, y));
-                        assert!(!green.get(x, y));
-                        assert!(ojama.get(x, y));
-                    },
-                    _ => {
-                        // skip
-                    }
+        for x in 0 .. field::MAP_WIDTH {
+            for y in 0 .. field::MAP_HEIGHT {
+                for c in color::color::ALL_PUYO_COLORS.iter() {
+                    assert_eq!(bf.bits(*c).get(x, y), *c == bf.color(x, y));
                 }
             }
         }
