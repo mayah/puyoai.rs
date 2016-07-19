@@ -5,6 +5,7 @@ extern crate simd;
 extern crate color;
 extern crate simdext;
 
+pub mod bit_field;
 pub mod field;
 mod field_bit;
 pub mod field_checker;
