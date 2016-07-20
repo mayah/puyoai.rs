@@ -1,8 +1,8 @@
 use std;
 use simd;
+use simd::x86::sse2::u64x2;
 use simdext::*;
 
-use simd::x86::sse2::u64x2;
 
 extern "platform-intrinsic" {
     fn x86_mm_testz_si128(x: u64x2, y: u64x2) -> i32;
@@ -55,6 +55,18 @@ impl FieldBit {
         self.m = mm_andnot_epu16(FieldBit::onebit(x, y), self.m)
     }
 
+    pub fn masked_field_12(&self) -> FieldBit {
+        FieldBit {
+            m: self.m & simd::u16x8::new(0, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0)
+        }
+    }
+
+    pub fn masked_field_13(&self) -> FieldBit {
+        FieldBit {
+            m: self.m & simd::u16x8::new(0, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0)
+        }
+    }
+
     pub fn as_u16x8(&self) -> simd::u16x8 {
         self.m
     }
@@ -83,6 +95,7 @@ impl std::fmt::Display for FieldBit {
 
 #[cfg(test)]
 mod tests {
+    use field;
     use field_bit::FieldBit;
 
     #[test]
@@ -115,6 +128,21 @@ mod tests {
                 assert!(fb.get(x, y));
                 fb.unset(x, y);
                 assert!(!fb.get(x, y));
+            }
+        }
+    }
+
+    #[test]
+    fn test_masked_field() {
+        let fb = FieldBit::from_values(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
+        let fb12 = fb.masked_field_12();
+        let fb13 = fb.masked_field_13();
+
+        for x in 0 .. field::MAP_WIDTH {
+            for y in 0 .. field::MAP_HEIGHT {
+                assert!(fb.get(x, y), "x={}, y={}", x, y);
+                assert_eq!(fb12.get(x, y), 1 <= x && x <= 6 && 1 <= y && y <= 12, "x={}, y={}", x, y);
+                assert_eq!(fb13.get(x, y), 1 <= x && x <= 6 && 1 <= y && y <= 13, "x={}, y={}", x, y);
             }
         }
     }
