@@ -67,6 +67,13 @@ impl FieldBit {
         }
     }
 
+    pub fn popcount(&self) -> usize {
+        let x: u64x2 = unsafe { bitcast(self.m) };
+        let low: u64 = x.extract(0);
+        let high: u64 = x.extract(1);
+        (low.count_ones() + high.count_ones()) as usize
+    }
+
     pub fn as_u16x8(&self) -> simd::u16x8 {
         self.m
     }
@@ -145,5 +152,11 @@ mod tests {
                 assert_eq!(fb13.get(x, y), 1 <= x && x <= 6 && 1 <= y && y <= 13, "x={}, y={}", x, y);
             }
         }
+    }
+
+    #[test]
+    fn test_popcount() {
+        let fb = FieldBit::from_values(1, 2, 3, 4, 5, 6, 7, 8);
+        assert_eq!(fb.popcount(), 1 + 1 + 2 + 1 + 2 + 2 + 3 + 1)
     }
 }
