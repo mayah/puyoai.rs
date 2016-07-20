@@ -47,6 +47,14 @@ impl BitField {
         }
     }
 
+    pub fn is_color(&self, x: usize, y: usize, c: PuyoColor) -> bool {
+        self.bits(c).get(x, y)
+    }
+
+    pub fn is_normal_color(&self, x: usize, y: usize) -> bool {
+        self.m[2].get(x, y)
+    }
+
     pub fn set_color(&mut self, x: usize, y: usize, c: PuyoColor) {
         let cc = c as u8;
         for i in 0 .. 3 {
@@ -145,7 +153,7 @@ mod tests {
     }
 
     #[test]
-    fn test_bits() {
+    fn test_each_cell() {
         let bf = BitField::from_str(concat!(
             "&&&&&&",
             "OOOOOO",
@@ -158,7 +166,10 @@ mod tests {
             for y in 0 .. field::MAP_HEIGHT {
                 for c in color::color::ALL_PUYO_COLORS.iter() {
                     assert_eq!(bf.bits(*c).get(x, y), *c == bf.color(x, y));
+                    assert_eq!(bf.is_color(x, y, *c), bf.is_color(x, y, *c));
                 }
+
+                assert_eq!(bf.is_normal_color(x, y), bf.is_normal_color(x, y));
             }
         }
     }
