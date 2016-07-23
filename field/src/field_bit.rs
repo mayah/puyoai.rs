@@ -115,6 +115,17 @@ impl FieldBit {
         }
     }
 
+    pub fn expand1(&self, mask: &FieldBit) -> FieldBit {
+        let seed = self.m;
+        let v1 = mm_slli_epi16(seed, 1);
+        let v2 = mm_srli_epi16(seed, 1);
+        let v3 = mm_slli_si128_2(seed);
+        let v4 = mm_srli_si128_2(seed);
+
+        let m = ((seed | v1) | (v2 | v3) | v4) & mask.m;
+        FieldBit { m: m }
+    }
+
     pub fn as_u16x8(&self) -> simd::u16x8 {
         self.m
     }
@@ -231,6 +242,31 @@ mod tests {
             "..1..."));
 
         let actual = FieldBit::from_onebit(3, 1).expand(&mask);
+        for x in 0 .. 8 {
+            for y in 0 .. 16 {
+                assert_eq!(actual.get(x, y), expected.get(x, y), "x={}, y={}", x, y);
+            }
+        }
+    }
+
+    #[test]
+    fn test_expand1() {
+        let mask = FieldBit::from_str(concat!(
+            "111111",
+            "111111",
+            "111111"));
+
+        let seed = FieldBit::from_str(concat!(
+            "......",
+            "1...1.",
+            "......"));
+
+        let expected = FieldBit::from_str(concat!(
+            "1...1.",
+            "11.111",
+            "1...1."));
+
+        let actual = seed.expand1(&mask);
         for x in 0 .. 8 {
             for y in 0 .. 16 {
                 assert_eq!(actual.get(x, y), expected.get(x, y), "x={}, y={}", x, y);
