@@ -66,6 +66,16 @@ impl BitField {
         }
     }
 
+    pub fn count_connected_puyos(&self, x: usize, y: usize) -> usize {
+        if y > field::HEIGHT {
+            return 0
+        }
+
+        let c = self.color(x, y);
+        let color_bits = self.bits(c).masked_field_12();
+        FieldBit::from_onebit(x, y).expand(&color_bits).popcount()
+    }
+
     pub fn bits(&self, c: PuyoColor) -> FieldBit {
         let v = match c {
             PuyoColor::EMPTY => {  // 0
@@ -172,5 +182,20 @@ mod tests {
                 assert_eq!(bf.is_normal_color(x, y), bf.is_normal_color(x, y));
             }
         }
+    }
+
+    #[test]
+    fn test_count_connected_puyos() {
+        let bf = BitField::from_str(concat!(
+            "RRRRRR",
+            "BYBRRY",
+            "RRRBBB"));
+
+        assert_eq!(bf.count_connected_puyos(1, 1), 3);
+        assert_eq!(bf.count_connected_puyos(4, 1), 3);
+        assert_eq!(bf.count_connected_puyos(1, 2), 1);
+        assert_eq!(bf.count_connected_puyos(3, 2), 1);
+        assert_eq!(bf.count_connected_puyos(6, 2), 1);
+        assert_eq!(bf.count_connected_puyos(4, 2), 8);
     }
 }
