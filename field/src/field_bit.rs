@@ -26,15 +26,21 @@ impl FieldBit {
         }
     }
 
+    pub fn new_empty() -> FieldBit {
+        FieldBit {
+            m: simd::u16x8::splat(0)
+        }
+    }
+
     pub fn from_values(v1: u16, v2: u16, v3: u16, v4: u16, v5: u16, v6: u16, v7: u16, v8: u16) -> FieldBit {
         FieldBit {
             m: simd::u16x8::new(v1, v2, v3, v4, v5, v6, v7, v8)
         }
     }
 
-    pub fn new_empty() -> FieldBit {
+    pub fn from_onebit(x: usize, y: usize) -> FieldBit {
         FieldBit {
-            m: simd::u16x8::splat(0)
+            m: FieldBit::onebit(x, y)
         }
     }
 
@@ -65,12 +71,12 @@ impl FieldBit {
 
     pub fn set(&mut self, x: usize, y: usize) {
         debug_assert!(FieldBit::check_in_range(x, y));
-        self.m = mm_or_epu16(FieldBit::onebit(x, y), self.m)
+        self.m = mm_or_si128(FieldBit::onebit(x, y), self.m)
     }
 
     pub fn unset(&mut self, x: usize, y: usize) {
         debug_assert!(FieldBit::check_in_range(x, y));
-        self.m = mm_andnot_epu16(FieldBit::onebit(x, y), self.m)
+        self.m = mm_andnot_si128(FieldBit::onebit(x, y), self.m)
     }
 
     pub fn masked_field_12(&self) -> FieldBit {
@@ -90,6 +96,23 @@ impl FieldBit {
         let low: u64 = x.extract(0);
         let high: u64 = x.extract(1);
         (low.count_ones() + high.count_ones()) as usize
+    }
+
+    pub fn expand(&self, mask: &FieldBit) -> FieldBit {
+        let mut seed = self.m;
+        loop {
+            let mut expanded = seed;
+            expanded = mm_or_si128(mm_slli_epi16(seed, 1), expanded);
+            expanded = mm_or_si128(mm_srli_epi16(seed, 1), expanded);
+            expanded = mm_or_si128(mm_slli_si128_2(seed), expanded);
+            expanded = mm_or_si128(mm_srli_si128_2(seed), expanded);
+            expanded = mm_and_si128(mask.m, expanded);
+
+            if mm_testc_si128(seed, expanded) { // seed == expanded
+                return FieldBit { m: expanded };
+            }
+            seed = expanded;
+        }
     }
 
     pub fn as_u16x8(&self) -> simd::u16x8 {
@@ -191,5 +214,27 @@ mod tests {
     fn test_popcount() {
         let fb = FieldBit::from_values(1, 2, 3, 4, 5, 6, 7, 8);
         assert_eq!(fb.popcount(), 1 + 1 + 2 + 1 + 2 + 2 + 3 + 1)
+    }
+
+    #[test]
+    fn test_expand() {
+        let mask = FieldBit::from_str(concat!(
+            ".1....",
+            "1.11..",
+            "1.1...",
+            "1.1...",
+        ));
+
+        let expected = FieldBit::from_str(concat!(
+            "..11..",
+            "..1...",
+            "..1..."));
+
+        let actual = FieldBit::from_onebit(3, 1).expand(&mask);
+        for x in 0 .. 8 {
+            for y in 0 .. 16 {
+                assert_eq!(actual.get(x, y), expected.get(x, y), "x={}, y={}", x, y);
+            }
+        }
     }
 }

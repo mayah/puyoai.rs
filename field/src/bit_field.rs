@@ -72,25 +72,25 @@ impl BitField {
                 (self.r(0) | self.r(1) | self.r(2)) ^ simd::u16x8::splat(0xFFFF)
             },
             PuyoColor::OJAMA => {  // 1
-                mm_andnot_epu16(self.r(2), mm_andnot_epu16(self.r(1), self.r(0)))
+                mm_andnot_si128(self.r(2), mm_andnot_si128(self.r(1), self.r(0)))
             },
             PuyoColor::WALL => {   // 2
-                mm_andnot_epu16(self.r(2), mm_andnot_epu16(self.r(0), self.r(1)))
+                mm_andnot_si128(self.r(2), mm_andnot_si128(self.r(0), self.r(1)))
             },
             PuyoColor::IRON => {   // 3
-                mm_andnot_epu16(self.r(2), mm_and_epu16(self.r(0), self.r(1)))
+                mm_andnot_si128(self.r(2), mm_and_si128(self.r(0), self.r(1)))
             },
             PuyoColor::RED => {    // 4
-                mm_andnot_epu16(self.r(0), mm_andnot_epu16(self.r(1), self.r(2)))
+                mm_andnot_si128(self.r(0), mm_andnot_si128(self.r(1), self.r(2)))
             },
             PuyoColor::BLUE => {   // 5
-                mm_and_epu16(self.r(0), mm_andnot_epu16(self.r(1), self.r(2)))
+                mm_and_si128(self.r(0), mm_andnot_si128(self.r(1), self.r(2)))
             },
             PuyoColor::YELLOW => { // 6
-                mm_andnot_epu16(self.r(0), mm_and_epu16(self.r(1), self.r(2)))
+                mm_andnot_si128(self.r(0), mm_and_si128(self.r(1), self.r(2)))
             },
             PuyoColor::GREEN => {  // 7
-                mm_and_epu16(self.r(0), mm_and_epu16(self.r(1), self.r(2)))
+                mm_and_si128(self.r(0), mm_and_si128(self.r(1), self.r(2)))
             },
         };
 

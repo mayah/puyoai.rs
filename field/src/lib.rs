@@ -1,4 +1,5 @@
 #![feature(platform_intrinsics)]
+#![feature(simd, simd_ffi, link_llvm_intrinsics)]
 
 extern crate simd;
 
