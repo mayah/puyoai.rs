@@ -38,6 +38,24 @@ impl FieldBit {
         }
     }
 
+    pub fn from_str(s: &str) -> FieldBit {
+        let mut f = FieldBit::new_empty();
+
+        assert!(s.len() % 6 == 0);
+
+        let mut cnt = 0;
+        for b in s.bytes().rev() {
+            let x = 6 - (cnt % 6);
+            let y = (cnt / 6) + 1;
+            if b == b'1' {
+                f.set(x, y);
+            }
+            cnt += 1;
+        }
+
+        f
+    }
+
     pub fn get(&self, x: usize, y: usize) -> bool {
         debug_assert!(FieldBit::check_in_range(x, y));
         unsafe {
@@ -121,6 +139,21 @@ mod tests {
         for x in 0 .. 8 {
             for y in 0 .. 16 {
                 assert_eq!(fb.get(x, y), x == y, "failed at x={}, y={}, fb.get(x, y)={}", x, y, fb.get(x, y));
+            }
+        }
+    }
+
+    #[test]
+    fn test_from_str() {
+        let fb = FieldBit::from_str(concat!(
+            "111...",
+            "......",
+            "111..."));
+
+        for x in 0 .. 8 {
+            for y in 0 .. 16 {
+                let b = (y == 1 || y == 3) && (1 <= x && x <= 3);
+                assert_eq!(fb.get(x, y), b, "x={}, y={}", x, y);
             }
         }
     }
