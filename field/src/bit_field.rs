@@ -2,9 +2,8 @@ use color::PuyoColor;
 use field;
 use field_bit::FieldBit;
 use plain_field::PuyoPlainField;
-use simd;
-use simdext::*;
 use std::mem;
+use x86intrin::*;
 
 #[derive(Clone, Copy)]
 pub struct BitField {
@@ -77,38 +76,39 @@ impl BitField {
     }
 
     pub fn bits(&self, c: PuyoColor) -> FieldBit {
+        let r0 = self.m[0].as_m128i();
+        let r1 = self.m[1].as_m128i();
+        let r2 = self.m[2].as_m128i();
+
         let v = match c {
             PuyoColor::EMPTY => {  // 0
-                (self.r(0) | self.r(1) | self.r(2)) ^ simd::u16x8::splat(0xFFFF)
+                let x = mm_or_si128(mm_or_si128(r0, r1), r2);
+                mm_xor_si128(x, mm_setr_epi32(!0, !0, !0, !0))
             },
             PuyoColor::OJAMA => {  // 1
-                mm_andnot_si128(self.r(2), mm_andnot_si128(self.r(1), self.r(0)))
+                mm_andnot_si128(r2, mm_andnot_si128(r1, r0))
             },
             PuyoColor::WALL => {   // 2
-                mm_andnot_si128(self.r(2), mm_andnot_si128(self.r(0), self.r(1)))
+                mm_andnot_si128(r2, mm_andnot_si128(r0, r1))
             },
             PuyoColor::IRON => {   // 3
-                mm_andnot_si128(self.r(2), mm_and_si128(self.r(0), self.r(1)))
+                mm_andnot_si128(r2, mm_and_si128(r0, r1))
             },
             PuyoColor::RED => {    // 4
-                mm_andnot_si128(self.r(0), mm_andnot_si128(self.r(1), self.r(2)))
+                mm_andnot_si128(r0, mm_andnot_si128(r1, r2))
             },
             PuyoColor::BLUE => {   // 5
-                mm_and_si128(self.r(0), mm_andnot_si128(self.r(1), self.r(2)))
+                mm_and_si128(r0, mm_andnot_si128(r1, r2))
             },
             PuyoColor::YELLOW => { // 6
-                mm_andnot_si128(self.r(0), mm_and_si128(self.r(1), self.r(2)))
+                mm_andnot_si128(r0, mm_and_si128(r1, r2))
             },
             PuyoColor::GREEN => {  // 7
-                mm_and_si128(self.r(0), mm_and_si128(self.r(1), self.r(2)))
+                mm_and_si128(r0, mm_and_si128(r1, r2))
             },
         };
 
         FieldBit::new(v)
-    }
-
-    fn r(&self, i: usize) -> simd::u16x8 {
-        self.m[i].as_u16x8()
     }
 }
 

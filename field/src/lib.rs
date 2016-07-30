@@ -1,10 +1,8 @@
 #![feature(platform_intrinsics)]
 #![feature(simd, simd_ffi, link_llvm_intrinsics)]
 
-extern crate simd;
-
 extern crate color;
-extern crate simdext;
+extern crate x86intrin;
 
 pub mod bit_field;
 pub mod field;
