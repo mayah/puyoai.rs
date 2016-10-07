@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["mayah"]
 
 [dependencies]
-x86intrin = { git = "http://github.com/mayah/x86intrin" }
+x86intrin = "0.4.0"
 color = { path = "../color" }

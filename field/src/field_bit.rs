@@ -1,12 +1,6 @@
 use std;
 use x86intrin::*;
 
-#[inline]
-unsafe fn bitcast<T, U>(x: T) -> U {
-    debug_assert!(std::mem::size_of::<T>() == std::mem::size_of::<U>());
-    std::mem::transmute_copy(&x)
-}
-
 #[derive(Clone, Copy)]
 pub struct FieldBit {
     m: m128i,
@@ -62,9 +56,7 @@ impl FieldBit {
 
     pub fn get(&self, x: usize, y: usize) -> bool {
         debug_assert!(FieldBit::check_in_range(x, y));
-        unsafe {
-            mm_testz_si128(FieldBit::onebit(x, y), self.m) == 0
-        }
+        mm_testz_si128(FieldBit::onebit(x, y), self.m) == 0
     }
 
     pub fn set(&mut self, x: usize, y: usize) {
