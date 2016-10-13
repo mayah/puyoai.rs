@@ -1,7 +1,7 @@
 use std;
 use x86intrin::*;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct FieldBit {
     m: m128i,
 }
@@ -128,6 +128,21 @@ impl FieldBit {
         let lo: i64 = hi ^ 1;
 
         mm_set_epi64x(hi << shift, lo << shift)
+    }
+}
+
+impl std::ops::BitOr for FieldBit {
+    type Output = FieldBit;
+
+    fn bitor(self, rhs: FieldBit) -> FieldBit {
+        FieldBit::new(mm_or_si128(self.m, rhs.m))
+    }
+}
+
+impl std::cmp::PartialEq<FieldBit> for FieldBit {
+    fn eq(&self, other: &FieldBit) -> bool {
+        let x = mm_xor_si128(self.m, other.m);
+        mm_testz_si128(x, x) == 1
     }
 }
 
@@ -260,5 +275,39 @@ mod tests {
                 assert_eq!(actual.get(x, y), expected.get(x, y), "x={}, y={}", x, y);
             }
         }
+    }
+
+    #[test]
+    fn test_eq() {
+        let fb1 = FieldBit::from_str(concat!(
+            "1....1",
+            "1....1",
+            "111111"));
+        let fb2 = FieldBit::from_str(concat!(
+            "111111",
+            "1....1",
+            "1....1"));
+
+        assert!(fb1 == fb1);
+        assert!(fb2 == fb2);
+        assert!(fb1 != fb2);
+    }
+
+    #[test]
+    fn test_bitor() {
+        let fb1 = FieldBit::from_str(concat!(
+            "1....1",
+            "1....1",
+            "111111"));
+        let fb2 = FieldBit::from_str(concat!(
+            "111111",
+            "1....1",
+            "1....1"));
+        let expected = FieldBit::from_str(concat!(
+            "111111",
+            "1....1",
+            "111111"));
+
+        assert_eq!(expected, fb1 | fb2);
     }
 }
