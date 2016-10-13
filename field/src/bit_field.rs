@@ -50,6 +50,11 @@ impl BitField {
         self.bits(c).get(x, y)
     }
 
+    pub fn is_empty(&self, x: usize, y: usize) -> bool {
+        let whole = self.m[0] | self.m[1] | self.m[2];
+        return !(whole.get(x, y))
+    }
+
     pub fn is_normal_color(&self, x: usize, y: usize) -> bool {
         self.m[2].get(x, y)
     }
@@ -160,6 +165,19 @@ mod tests {
             bf.set_color(1, 1, *c);
             assert_eq!(*c, bf.color(1, 1));
         }
+    }
+
+    #[test]
+    fn test_is_empty() {
+        let bf = BitField::from_str(concat!(
+            "RRR..."));
+
+        assert!(!bf.is_empty(1, 1));
+        assert!(!bf.is_empty(2, 1));
+        assert!(!bf.is_empty(3, 1));
+        assert!(bf.is_empty(4, 1));
+        assert!(bf.is_empty(5, 1));
+        assert!(bf.is_empty(6, 1));
     }
 
     #[test]
