@@ -148,6 +148,27 @@ impl FieldBit {
         return true;
     }
 
+    pub fn has_vanishing_bits(&self) -> bool {
+        let u = mm_and_si128(mm_srli_epi16(self.m, 1), self.m);
+        let d = mm_and_si128(mm_slli_epi16(self.m, 1), self.m);
+        let l = mm_and_si128(mm_slli_si128(self.m, 2), self.m);
+        let r = mm_and_si128(mm_srli_si128(self.m, 2), self.m);
+
+        let ud_and = u & d;
+        let lr_and = l & r;
+        let ud_or = u | d;
+        let lr_or = l | r;
+
+        let threes = (ud_and & lr_or) | (lr_and & ud_or);
+        let twos = ud_and | lr_and | (ud_or & lr_or);
+
+        let two_d = mm_slli_epi16(twos, 1) & twos;
+        let two_l = mm_slli_si128(twos, 2) & twos;
+
+        let vanishing = threes | two_d | two_l;
+        return mm_testz_si128(vanishing, vanishing) == 0;
+    }
+
     pub fn popcount(&self) -> usize {
         let x = self.m.as_u64x2();
         let low: u64 = x.extract(0);
@@ -434,6 +455,7 @@ mod tests {
             "1...1."));
 
         let mut vanishing = FieldBit::uninitialized();
+        assert!(f.has_vanishing_bits());
         assert!(f.find_vanishing_bits(&mut vanishing));
 
         for x in 1 .. field::WIDTH + 1 {
@@ -452,6 +474,7 @@ mod tests {
             ".1.11."));
 
         let mut vanishing = FieldBit::uninitialized();
+        assert!(!f.has_vanishing_bits());
         assert!(!f.find_vanishing_bits(&mut vanishing));
 
         for x in 1 .. field::WIDTH + 1 {
