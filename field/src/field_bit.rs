@@ -89,7 +89,7 @@ impl FieldBit {
     }
 
     pub fn is_empty(&self) -> bool {
-        mm_testz_si128(self.m, self.m) == 1
+        mm_testz_si128(self.m, self.m) != 0
     }
 
     pub fn masked_field_12(&self) -> FieldBit {
@@ -102,6 +102,50 @@ impl FieldBit {
         FieldBit {
             m: mm_and_si128(self.m, mm_setr_epi16(0, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0)),
         }
+    }
+
+    /// Returns true if there are 4-connected bits.
+    /// Such bits are copied to `vanishing`.
+    pub fn find_vanishing_bits(&self, vanishing: &mut FieldBit) -> bool {
+        //  x
+        // xox              -- o is 3-connected
+        //
+        // xoox  ox   x oo
+        //      xo  xoo oo  -- o is 2-connected.
+        //
+        // So, one 3-connected piece or two 2-connected pieces are necessary and sufficient.
+        //
+        // Also, 1-connected won't be connected to each other in vanishing case.
+        // So, after this, expand1() should be enough.
+
+        let u = mm_srli_epi16(self.m, 1) & self.m;
+        let d = mm_slli_epi16(self.m, 1) & self.m;
+        let l = mm_slli_si128(self.m, 2) & self.m;
+        let r = mm_srli_si128(self.m, 2) & self.m;
+
+        let ud_and = u & d;
+        let lr_and = l & r;
+        let ud_or = u | d;
+        let lr_or = l | r;
+
+        let threes = (ud_and & lr_or) | (lr_and & ud_or);
+        let twos = ud_and | lr_and | (ud_or & lr_or);
+
+        let two_d = mm_slli_epi16(twos, 1) & twos;
+        let two_l = mm_slli_si128(twos, 2) & twos;
+
+        let mut t = threes | two_d | two_l;
+        if mm_testz_si128(t, t) != 0 {
+            *vanishing = FieldBit::empty();
+            return false;
+        }
+
+        let two_u = mm_srli_epi16(twos, 1) & twos;
+        let two_r = mm_srli_si128(twos, 2) & twos;
+        t = t | two_u | two_r;
+
+        *vanishing = FieldBit::new(t).expand1(*self);
+        return true;
     }
 
     pub fn popcount(&self) -> usize {
@@ -128,7 +172,7 @@ impl FieldBit {
         }
     }
 
-    pub fn expand1(&self, mask: &FieldBit) -> FieldBit {
+    pub fn expand1(&self, mask: FieldBit) -> FieldBit {
         let seed = self.m;
         let v1 = mm_slli_epi16(seed, 1);
         let v2 = mm_srli_epi16(seed, 1);
@@ -348,7 +392,7 @@ mod tests {
             "11.111",
             "1...1."));
 
-        let actual = seed.expand1(&mask);
+        let actual = seed.expand1(mask);
         for x in 0 .. 8 {
             for y in 0 .. 16 {
                 assert_eq!(actual.get(x, y), expected.get(x, y), "x={}, y={}", x, y);
@@ -377,6 +421,44 @@ mod tests {
         assert!(fb.get(2, 4));
         assert!(!fb.get(1, 4));
         assert!(!fb.get(2, 3));
+    }
+
+    #[test]
+    fn test_find_vanishing_bits_1() {
+        let f = FieldBit::from_str(concat!(
+            ".1....",
+            "11..1.",
+            ".1.111",
+            "1...1.",
+            "11.111",
+            "1...1."));
+
+        let mut vanishing = FieldBit::uninitialized();
+        assert!(f.find_vanishing_bits(&mut vanishing));
+
+        for x in 1 .. field::WIDTH + 1 {
+            for y in 1 .. field::HEIGHT + 1 {
+                assert_eq!(vanishing.get(x, y), f.get(x, y), "x={}, y={}", x, y);
+            }
+        }
+    }
+
+    #[test]
+    fn test_find_vanishing_bits_2() {
+        let f = FieldBit::from_str(concat!(
+            ".....1",
+            ".111.1",
+            ".....1",
+            ".1.11."));
+
+        let mut vanishing = FieldBit::uninitialized();
+        assert!(!f.find_vanishing_bits(&mut vanishing));
+
+        for x in 1 .. field::WIDTH + 1 {
+            for y in 1 .. field::HEIGHT + 1 {
+                assert!(!vanishing.get(x, y));
+            }
+        }
     }
 
     #[test]
