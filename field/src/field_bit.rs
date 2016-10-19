@@ -24,6 +24,10 @@ impl FieldBit {
         }
     }
 
+    pub fn uninitialized() -> FieldBit {
+        unsafe { std::mem::uninitialized::<FieldBit>() }
+    }
+
     pub fn empty() -> FieldBit {
         FieldBit {
             m: mm_setzero_si128()
@@ -171,6 +175,10 @@ impl FieldBit256 {
         FieldBit256 {
             m: m,
         }
+    }
+
+    pub fn uninitialized() -> FieldBit256 {
+        unsafe { std::mem::uninitialized::<FieldBit256>() }
     }
 
     pub fn empty() -> FieldBit256 {
