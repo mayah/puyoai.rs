@@ -6,6 +6,17 @@ pub struct FieldBit {
     m: m128i,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct FieldBit256 {
+    m: m256i,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum LowHigh {
+    LOW,
+    HIGH,
+}
+
 impl FieldBit {
     pub fn new(m: m128i) -> FieldBit {
         FieldBit {
@@ -152,6 +163,58 @@ impl std::fmt::Display for FieldBit {
         write!(f, "({}, {}, {}, {}, {}, {}, {}, {})",
                x.extract(0), x.extract(1), x.extract(2), x.extract(3),
                x.extract(4), x.extract(5), x.extract(6), x.extract(7))
+    }
+}
+
+impl FieldBit256 {
+    pub fn new(m: m256i) -> FieldBit256 {
+        FieldBit256 {
+            m: m,
+        }
+    }
+
+    pub fn new_empty() -> FieldBit256 {
+        FieldBit256 {
+            m: mm256_setzero_si256()
+        }
+    }
+
+    pub fn from_low_high(low: FieldBit, high: FieldBit) -> FieldBit256 {
+        let m = mm256_inserti128_si256(mm256_castsi128_si256(low.m), high.m, 1);
+        FieldBit256 {
+            m: m
+        }
+    }
+
+    pub fn get(&self, lowhigh: LowHigh, x: usize, y: usize) -> bool {
+        debug_assert!(FieldBit256::check_in_range(x, y));
+        mm256_testz_si256(FieldBit256::onebit(lowhigh, x, y), self.m) == 0
+    }
+
+    fn check_in_range(x: usize, y: usize) -> bool {
+        x < 8 && y < 16
+    }
+
+    fn onebit(lowhigh: LowHigh, x: usize, y: usize) -> m256i {
+        debug_assert!(FieldBit256::check_in_range(x, y));
+
+        // TODO(mayah): Maybe we have more good solution.
+
+        let shift = ((x << 4) | y) & 0x3F;
+        let zero = mm256_setzero_si256();
+        if lowhigh == LowHigh::LOW {
+            if x < 4 {
+                return mm256_insert_epi64(zero, 1 << shift, 0)
+            } else {
+                return mm256_insert_epi64(zero, 1 << shift, 1)
+            }
+        } else {
+            if x < 4 {
+                return mm256_insert_epi64(zero, 1 << shift, 2)
+            } else {
+                return mm256_insert_epi64(zero, 1 << shift, 3)
+            }
+        }
     }
 }
 
@@ -309,5 +372,43 @@ mod tests {
             "111111"));
 
         assert_eq!(expected, fb1 | fb2);
+    }
+}
+
+#[cfg(test)]
+mod field_bit_256_tests {
+    use super::*;
+
+    #[test]
+    fn test_constructor() {
+        let fb256 = FieldBit256::new_empty();
+
+        for x in 0 .. 8 {
+            for y in 0 .. 16 {
+                assert!(!fb256.get(LowHigh::LOW, x, y));
+                assert!(!fb256.get(LowHigh::HIGH, x, y));
+            }
+        }
+    }
+
+    #[test]
+    fn test_from_low_high() {
+        let mut low = FieldBit::new_empty();
+        let mut high = FieldBit::new_empty();
+        low.set(1, 3);
+        low.set(4, 8);
+        high.set(2, 4);
+        high.set(5, 9);
+
+        let fb256 = FieldBit256::from_low_high(low, high);
+        assert!(fb256.get(LowHigh::LOW, 1, 3));
+        assert!(fb256.get(LowHigh::LOW, 4, 8));
+        assert!(fb256.get(LowHigh::HIGH, 2, 4));
+        assert!(fb256.get(LowHigh::HIGH, 5, 9));
+
+        assert!(!fb256.get(LowHigh::HIGH, 1, 3));
+        assert!(!fb256.get(LowHigh::HIGH, 4, 8));
+        assert!(!fb256.get(LowHigh::LOW, 2, 4));
+        assert!(!fb256.get(LowHigh::LOW, 5, 9));
     }
 }
