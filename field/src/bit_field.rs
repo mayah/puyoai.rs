@@ -13,9 +13,9 @@ pub struct BitField {
 impl BitField {
     pub fn new() -> BitField {
         BitField {
-            m: [FieldBit::new_empty(),
+            m: [FieldBit::empty(),
                 FieldBit::from_values(0xFFFF, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0xFFFF),
-                FieldBit::new_empty(), ]
+                FieldBit::empty(), ]
         }
     }
 

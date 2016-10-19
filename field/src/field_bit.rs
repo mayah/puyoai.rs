@@ -24,7 +24,7 @@ impl FieldBit {
         }
     }
 
-    pub fn new_empty() -> FieldBit {
+    pub fn empty() -> FieldBit {
         FieldBit {
             m: mm_setzero_si128()
         }
@@ -44,7 +44,7 @@ impl FieldBit {
     }
 
     pub fn from_str(s: &str) -> FieldBit {
-        let mut f = FieldBit::new_empty();
+        let mut f = FieldBit::empty();
 
         assert!(s.len() % 6 == 0);
 
@@ -173,7 +173,7 @@ impl FieldBit256 {
         }
     }
 
-    pub fn new_empty() -> FieldBit256 {
+    pub fn empty() -> FieldBit256 {
         FieldBit256 {
             m: mm256_setzero_si256()
         }
@@ -225,7 +225,7 @@ mod tests {
 
     #[test]
     fn test_empty() {
-        let fb = FieldBit::new_empty();
+        let fb = FieldBit::empty();
         for x in 0 .. 8 {
             for y in 0 .. 16 {
                 assert_eq!(fb.get(x, y), false);
@@ -262,7 +262,7 @@ mod tests {
     fn test_set_get() {
         for x in 0 .. 8 {
             for y in 0 .. 16 {
-                let mut fb = FieldBit::new_empty();
+                let mut fb = FieldBit::empty();
                 assert!(!fb.get(x, y));
                 fb.set(x, y);
                 assert!(fb.get(x, y));
@@ -381,7 +381,7 @@ mod field_bit_256_tests {
 
     #[test]
     fn test_constructor() {
-        let fb256 = FieldBit256::new_empty();
+        let fb256 = FieldBit256::empty();
 
         for x in 0 .. 8 {
             for y in 0 .. 16 {
@@ -393,8 +393,8 @@ mod field_bit_256_tests {
 
     #[test]
     fn test_from_low_high() {
-        let mut low = FieldBit::new_empty();
-        let mut high = FieldBit::new_empty();
+        let mut low = FieldBit::empty();
+        let mut high = FieldBit::empty();
         low.set(1, 3);
         low.set(4, 8);
         high.set(2, 4);
