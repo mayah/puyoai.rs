@@ -79,9 +79,17 @@ impl FieldBit {
         self.m = mm_or_si128(FieldBit::onebit(x, y), self.m)
     }
 
+    pub fn set_all(&mut self, fb: FieldBit) {
+        self.m = mm_or_si128(self.m, fb.m)
+    }
+
     pub fn unset(&mut self, x: usize, y: usize) {
         debug_assert!(FieldBit::check_in_range(x, y));
         self.m = mm_andnot_si128(FieldBit::onebit(x, y), self.m)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        mm_testz_si128(self.m, self.m) == 1
     }
 
     pub fn masked_field_12(&self) -> FieldBit {
@@ -346,6 +354,29 @@ mod tests {
                 assert_eq!(actual.get(x, y), expected.get(x, y), "x={}, y={}", x, y);
             }
         }
+    }
+
+    #[test]
+    fn test_is_empty() {
+        let fb1 = FieldBit::empty();
+        assert!(fb1.is_empty());
+
+        let fb2 = FieldBit::from_onebit(1, 3);
+        assert!(!fb2.is_empty());
+    }
+
+    #[test]
+    fn test_set_all() {
+        let mut fb = FieldBit::empty();
+        let fb1 = FieldBit::from_onebit(1, 3);
+        let fb2 = FieldBit::from_onebit(2, 4);
+        fb.set_all(fb1);
+        fb.set_all(fb2);
+
+        assert!(fb.get(1, 3));
+        assert!(fb.get(2, 4));
+        assert!(!fb.get(1, 4));
+        assert!(!fb.get(2, 3));
     }
 
     #[test]
