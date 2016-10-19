@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["mayah"]
 
 [dependencies]
-x86intrin = "0.4.0"
+x86intrin = "0.4.1"
 color = { path = "../color" }
