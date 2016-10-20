@@ -5,3 +5,4 @@ authors = ["mayah"]
 
 [dependencies]
 color = { path = "../color" }
+rand = "^0.3.14"
