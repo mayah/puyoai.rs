@@ -1,8 +1,9 @@
 [package]
-name = "kumipuyo"
+name = "puyocore"
 version = "0.1.0"
 authors = ["mayah"]
 
 [dependencies]
-color = { path = "../color" }
 rand = "^0.3.14"
+x86intrin = "0.4.1"
+

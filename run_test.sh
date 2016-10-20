@@ -1,4 +1,4 @@
 #!/bin/sh
 
-cd field
+cd puyocore
 RUSTFLAGS="-C target-cpu=native" cargo test
