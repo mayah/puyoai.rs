@@ -227,6 +227,14 @@ impl std::ops::BitOr for FieldBit {
     }
 }
 
+impl std::ops::BitAnd for FieldBit {
+    type Output = FieldBit;
+
+    fn bitand(self, rhs: FieldBit) -> FieldBit {
+        FieldBit::new(mm_and_si128(self.m, rhs.m))
+    }
+}
+
 impl std::cmp::PartialEq<FieldBit> for FieldBit {
     fn eq(&self, other: &FieldBit) -> bool {
         let x = mm_xor_si128(self.m, other.m);
@@ -501,7 +509,7 @@ mod tests {
     }
 
     #[test]
-    fn test_bitor() {
+    fn test_bit() {
         let fb1 = FieldBit::from_str(concat!(
             "1....1",
             "1....1",
@@ -510,12 +518,18 @@ mod tests {
             "111111",
             "1....1",
             "1....1"));
-        let expected = FieldBit::from_str(concat!(
+
+        let expected_and = FieldBit::from_str(concat!(
+            "1....1",
+            "1....1",
+            "1....1"));
+        let expected_or = FieldBit::from_str(concat!(
             "111111",
             "1....1",
             "111111"));
 
-        assert_eq!(expected, fb1 | fb2);
+        assert_eq!(expected_and, fb1 & fb2);
+        assert_eq!(expected_or, fb1 | fb2);
     }
 }
 
