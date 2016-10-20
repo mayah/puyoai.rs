@@ -187,7 +187,7 @@ impl FieldBit {
             expanded = mm_and_si128(mask.m, expanded);
 
             if mm_testc_si128(seed, expanded) != 0 { // seed == expanded
-                return FieldBit { m: expanded };
+                return FieldBit::new(expanded);
             }
             seed = expanded;
         }
@@ -280,6 +280,48 @@ impl FieldBit256 {
         mm256_testz_si256(FieldBit256::onebit(lowhigh, x, y), self.m) == 0
     }
 
+    pub fn low(&self) -> FieldBit {
+        FieldBit::new(mm256_castsi256_si128(self.m))
+    }
+
+    pub fn high(&self) -> FieldBit {
+        FieldBit::new(mm256_extracti128_si256(self.m, 1))
+    }
+
+    pub fn set_low(&mut self, x: usize, y: usize) {
+        self.m = self.m | FieldBit256::onebit(LowHigh::LOW, x, y)
+    }
+
+    pub fn set_high(&mut self, x: usize, y: usize) {
+        self.m = self.m | FieldBit256::onebit(LowHigh::HIGH, x, y)
+    }
+
+    pub fn expand(&self, mask: FieldBit256) -> FieldBit256 {
+        let mut seed = self.m;
+
+        loop {
+            let mut expanded = seed;
+            expanded = mm256_slli_epi16(seed, 1) | expanded;
+            expanded = mm256_srli_epi16(seed, 1) | expanded;
+            expanded = mm256_slli_si256(seed, 2) | expanded;
+            expanded = mm256_srli_si256(seed, 2) | expanded;
+            expanded = mask.m & expanded;
+
+            if mm256_testc_si256(seed, expanded) != 0 { // seed == expanded
+                return FieldBit256::new(expanded);
+            }
+            seed = expanded;
+        }
+    }
+
+    pub fn expand1(&self, mask: FieldBit256) -> FieldBit256 {
+        let v1 = mm256_slli_si256(self.m, 2);
+        let v2 = mm256_srli_si256(self.m, 2);
+        let v3 = mm256_slli_epi16(self.m, 1);
+        let v4 = mm256_srli_epi16(self.m, 1);
+        FieldBit256::new(((self.m | v1) | (v2 | v3) | v4) & mask.m)
+    }
+
     fn check_in_range(x: usize, y: usize) -> bool {
         x < 8 && y < 16
     }
@@ -304,6 +346,22 @@ impl FieldBit256 {
                 return mm256_insert_epi64(zero, 1 << shift, 3)
             }
         }
+    }
+}
+
+impl std::ops::BitOr for FieldBit256 {
+    type Output = FieldBit256;
+
+    fn bitor(self, rhs: FieldBit256) -> FieldBit256 {
+        FieldBit256::new(self.m | rhs.m)
+    }
+}
+
+impl std::ops::BitAnd for FieldBit256 {
+    type Output = FieldBit256;
+
+    fn bitand(self, rhs: FieldBit256) -> FieldBit256 {
+        FieldBit256::new(self.m & rhs.m)
     }
 }
 
@@ -568,5 +626,38 @@ mod field_bit_256_tests {
         assert!(!fb256.get(LowHigh::HIGH, 4, 8));
         assert!(!fb256.get(LowHigh::LOW, 2, 4));
         assert!(!fb256.get(LowHigh::LOW, 5, 9));
+
+        assert_eq!(low, fb256.low());
+        assert_eq!(high, fb256.high());
+    }
+
+    #[test]
+    fn test_expand() {
+        let mask_high = FieldBit::from_str(concat!(
+            "......",
+            "11..11",
+            "11..11",
+            "......",
+            "111111"));
+        let mask_low = FieldBit::from_str(concat!(
+            "111111",
+            ".....1",
+            "111111",
+            "1.....",
+            "111111"));
+
+        let expected_high = FieldBit::from_str(concat!(
+            "111111"));
+        let expected_low = mask_low;
+
+        let mask = FieldBit256::from_low_high(mask_low, mask_high);
+
+        let mut bit = FieldBit256::empty();
+        bit.set_high(3, 1);
+        bit.set_low(6, 1);
+
+        let expanded = bit.expand(mask);
+        assert_eq!(expected_high, expanded.high());
+        assert_eq!(expected_low, expanded.low());
     }
 }
