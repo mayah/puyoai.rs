@@ -18,6 +18,7 @@ pub mod plain_field;
 pub mod position;
 pub mod rensa;
 pub mod score;
+pub mod sseext;
 
 pub use plain_field::PuyoPlainField;
 pub use plain_field::RealPlainField;
