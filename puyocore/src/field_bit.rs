@@ -280,6 +280,14 @@ impl FieldBit256 {
         mm256_testz_si256(FieldBit256::onebit(lowhigh, x, y), self.m) == 0
     }
 
+    pub fn get_low(&self, x: usize, y: usize) -> bool {
+        self.low().get(x, y)
+    }
+
+    pub fn get_high(&self, x: usize, y: usize) -> bool {
+        self.high().get(x, y)
+    }
+
     pub fn low(&self) -> FieldBit {
         FieldBit::new(mm256_castsi256_si128(self.m))
     }
@@ -320,6 +328,35 @@ impl FieldBit256 {
         let v3 = mm256_slli_epi16(self.m, 1);
         let v4 = mm256_srli_epi16(self.m, 1);
         FieldBit256::new(((self.m | v1) | (v2 | v3) | v4) & mask.m)
+    }
+
+    pub fn find_vanishing_bits(&self, vanishing: &mut FieldBit256) -> bool {
+        let m = self.m;
+        let u = mm256_srli_epi16(m, 1) & m;
+        let d = mm256_slli_epi16(m, 1) & m;
+        let l = mm256_slli_si256(m, 2) & m;
+        let r = mm256_srli_si256(m, 2) & m;
+
+        let ud_and = u & d;
+        let lr_and = l & r;
+        let ud_or = u | d;
+        let lr_or = l | r;
+
+        let twos = lr_and | ud_and | (ud_or & lr_or);
+        let two_d = mm256_slli_epi16(twos, 1) & twos;
+        let two_l = mm256_slli_si256(twos, 2) & twos;
+        let threes = (ud_and & lr_or) | (lr_and & ud_or);
+        let t = two_d | two_l | threes;
+
+        if mm256_testz_si256(t, t) != 0 {
+            *vanishing = FieldBit256::empty();
+            return false;
+        }
+
+        let two_u = mm256_srli_epi16(twos, 1) & twos;
+        let two_r = mm256_srli_si256(twos, 2) & twos;
+        *vanishing = FieldBit256::new(t | two_u | two_r).expand1(*self);
+        return true;
     }
 
     fn check_in_range(x: usize, y: usize) -> bool {
@@ -594,6 +631,7 @@ mod tests {
 #[cfg(test)]
 mod field_bit_256_tests {
     use super::*;
+    use field;
 
     #[test]
     fn test_constructor() {
@@ -659,5 +697,51 @@ mod field_bit_256_tests {
         let expanded = bit.expand(mask);
         assert_eq!(expected_high, expanded.high());
         assert_eq!(expected_low, expanded.low());
+    }
+
+    #[test]
+    fn test_find_vanishing_bits_1() {
+        let fb256 = {
+            let f = FieldBit::from_str(concat!(
+                ".1....",
+                "11..1.",
+                ".1.111",
+                "1...1.",
+                "11.111",
+                "1...1."));
+            FieldBit256::from_low_high(f, f)
+        };
+
+        let mut vanishing = FieldBit256::uninitialized();
+        assert!(fb256.find_vanishing_bits(&mut vanishing));
+
+        for x in 1 .. field::WIDTH + 1 {
+            for y in 1 .. field::HEIGHT + 1 {
+                assert_eq!(vanishing.get_low(x, y), fb256.get_low(x, y), "x={}, y={}", x, y);
+                assert_eq!(vanishing.get_high(x, y), fb256.get_high(x, y), "x={}, y={}", x, y);
+            }
+        }
+    }
+
+    #[test]
+    fn test_find_vanishing_bits_2() {
+        let fb256 = {
+            let f = FieldBit::from_str(concat!(
+                ".....1",
+                ".111.1",
+                ".....1",
+                ".1.11."));
+            FieldBit256::from_low_high(f, f)
+        };
+
+        let mut vanishing = FieldBit256::uninitialized();
+        assert!(!fb256.find_vanishing_bits(&mut vanishing));
+
+        for x in 1 .. field::WIDTH + 1 {
+            for y in 1 .. field::HEIGHT + 1 {
+                assert!(!vanishing.get_low(x, y));
+                assert!(!vanishing.get_high(x, y));
+            }
+        }
     }
 }
