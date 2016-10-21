@@ -1,3 +1,4 @@
+use sseext;
 use std;
 use x86intrin::*;
 
@@ -101,6 +102,13 @@ impl FieldBit {
     pub fn masked_field_13(&self) -> FieldBit {
         FieldBit {
             m: mm_and_si128(self.m, mm_setr_epi16(0, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0)),
+        }
+    }
+
+    pub fn not_masked_field_13(&self) -> FieldBit {
+        let r = sseext::mm_setone_si128() ^ mm_setr_epi16(0, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0x3FFE, 0);
+        FieldBit {
+            m: mm_and_si128(self.m, r),
         }
     }
 

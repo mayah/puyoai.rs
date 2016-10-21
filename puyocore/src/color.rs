@@ -1,3 +1,5 @@
+use std;
+
 pub trait Color<T> : Clone + Copy + PartialEq<T> {
     fn from_byte(b: u8) -> T;
     fn empty_color() -> T;
@@ -83,6 +85,12 @@ impl Color<PuyoColor> for PuyoColor {
             PuyoColor::YELLOW => 'Y',
             PuyoColor::GREEN  => 'G',
         }
+    }
+}
+
+impl std::fmt::Display for PuyoColor {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.to_char())
     }
 }
 

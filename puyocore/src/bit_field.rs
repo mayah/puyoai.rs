@@ -2,10 +2,11 @@ use color::{self, PuyoColor};
 use field;
 use field_bit::FieldBit;
 use plain_field::PuyoPlainField;
-use std::mem;
+use sseext;
+use std::{self, mem};
 use x86intrin::*;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct BitField {
     m: [FieldBit; 3],
 }
@@ -16,6 +17,12 @@ impl BitField {
             m: [FieldBit::empty(),
                 FieldBit::from_values(0xFFFF, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0x8001, 0xFFFF),
                 FieldBit::empty(), ]
+        }
+    }
+
+    pub fn uninitialized() -> BitField {
+        BitField {
+            m: [FieldBit::uninitialized(), FieldBit::uninitialized(), FieldBit::uninitialized()]
         }
     }
 
@@ -116,6 +123,22 @@ impl BitField {
         FieldBit::new(v)
     }
 
+    pub fn escape_invisible(&mut self) -> BitField {
+        let mut escaped = BitField::uninitialized();
+        for i in 0 .. 3 {
+            escaped.m[i] = self.m[i].not_masked_field_13();
+            self.m[i] = self.m[i].masked_field_13();
+        }
+
+        escaped
+    }
+
+    pub fn recover_invisible(&mut self, bf: &BitField) {
+        for i in 0 .. 3 {
+            self.m[i].set_all(bf.m[i]);
+        }
+    }
+
     pub fn vanish_fast(&self, erased: &mut FieldBit) -> bool {
         *erased = FieldBit::empty();
         let mut did_erase = false;
@@ -140,6 +163,58 @@ impl BitField {
 
         // tracker->trackVanish(currentChain, *erased, ojamaErased);
         return true;
+    }
+
+    pub fn drop_after_vanish_fast(&mut self, erased: FieldBit) {
+        let ones = sseext::mm_setone_si128();
+
+        let t = mm_xor_si128(erased.as_m128i(), ones);
+        let old_low_bits = t.as_u64x2().extract(0);
+        let old_high_bits = t.as_u64x2().extract(1);
+
+        let shift = mm256_cvtepu16_epi32(sseext::mm_popcnt_epi16(erased.as_m128i()));
+        let half_ones = mm256_cvtepu16_epi32(ones);
+        let mut shifted = mm256_srlv_epi32(half_ones, shift);
+        shifted = mm256_packus_epi32(shifted, shifted);
+
+        let new_low_bits = shifted.as_u64x4().extract(0);
+        let new_high_bits = shifted.as_u64x4().extract(2);
+
+        let mut d = [self.m[0].as_m128i().as_u64x2(), self.m[1].as_m128i().as_u64x2(), self.m[2].as_m128i().as_u64x2()];
+
+        if new_low_bits != 0xFFFFFFFFFFFFFFFF {
+            d[0] = d[0].insert(0, pdep_u64(pext_u64(d[0].extract(0), old_low_bits), new_low_bits));
+            d[1] = d[1].insert(0, pdep_u64(pext_u64(d[1].extract(0), old_low_bits), new_low_bits));
+            d[2] = d[2].insert(0, pdep_u64(pext_u64(d[2].extract(0), old_low_bits), new_low_bits));
+            if new_high_bits != 0xFFFFFFFFFFFFFFFF {
+                d[0] = d[0].insert(1, pdep_u64(pext_u64(d[0].extract(1), old_high_bits), new_high_bits));
+                d[1] = d[1].insert(1, pdep_u64(pext_u64(d[1].extract(1), old_high_bits), new_high_bits));
+                d[2] = d[2].insert(1, pdep_u64(pext_u64(d[2].extract(1), old_high_bits), new_high_bits));
+            }
+        } else {
+            d[0] = d[0].insert(1, pdep_u64(pext_u64(d[0].extract(1), old_high_bits), new_high_bits));
+            d[1] = d[1].insert(1, pdep_u64(pext_u64(d[1].extract(1), old_high_bits), new_high_bits));
+            d[2] = d[2].insert(1, pdep_u64(pext_u64(d[2].extract(1), old_high_bits), new_high_bits));
+        }
+
+        self.m[0] = FieldBit::new(d[0].as_m128i());
+        self.m[1] = FieldBit::new(d[1].as_m128i());
+        self.m[2] = FieldBit::new(d[2].as_m128i());
+    }
+}
+
+impl std::fmt::Display for BitField {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        // TODO(mayah): More sophisticated way?
+
+        for y in 0 .. 16 {
+            for x in 0 .. 8 {
+                write!(f, "{}", self.color(x, 15 - y));
+            }
+            writeln!(f, "{}", "");
+        }
+
+        write!(f, "{}", "")
     }
 }
 
@@ -296,5 +371,23 @@ mod tests {
 
         let mut vanishing = FieldBit::uninitialized();
         assert!(!bf.vanish_fast(&mut vanishing));
+    }
+
+    #[test]
+    fn test_drop_after_vanish_fast() {
+        let mut bf = BitField::from_str(concat!(
+            "..BB..",
+            "RRRR.."));
+        let erased = FieldBit::from_str(concat!(
+            "1111.."));
+
+        let invisible = bf.escape_invisible();
+        bf.drop_after_vanish_fast(erased);
+        bf.recover_invisible(&invisible);
+
+        let expected = BitField::from_str(concat!(
+            "..BB.."));
+
+        assert_eq!(expected, bf);
     }
 }
