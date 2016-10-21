@@ -91,6 +91,10 @@ pub const ALL_PUYO_COLORS: [PuyoColor; 8] = [
     PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN,
 ];
 
+pub const NORMAL_PUYO_COLORS: [PuyoColor; 4] = [
+    PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN,
+];
+
 #[cfg(test)]
 mod tests {
     use super::*;

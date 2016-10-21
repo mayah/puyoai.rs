@@ -1,4 +1,4 @@
-use color::PuyoColor;
+use color::{self, PuyoColor};
 use field;
 use field_bit::FieldBit;
 use plain_field::PuyoPlainField;
@@ -115,6 +115,32 @@ impl BitField {
 
         FieldBit::new(v)
     }
+
+    pub fn vanish_fast(&self, erased: &mut FieldBit) -> bool {
+        *erased = FieldBit::empty();
+        let mut did_erase = false;
+
+        for c in &color::NORMAL_PUYO_COLORS {
+            let mask = self.bits(*c).masked_field_12();
+            let mut vanishing = FieldBit::uninitialized();
+            if !mask.find_vanishing_bits(&mut vanishing) {
+                continue
+            }
+
+            erased.set_all(vanishing);
+            did_erase = true
+        }
+
+        if !did_erase {
+            return false;
+        }
+
+        let ojama_erased = erased.expand1(self.bits(PuyoColor::OJAMA)).masked_field_12();
+        erased.set_all(ojama_erased);
+
+        // tracker->trackVanish(currentChain, *erased, ojamaErased);
+        return true;
+    }
 }
 
 #[cfg(test)]
@@ -123,6 +149,7 @@ mod tests {
     use color;
     use color::PuyoColor;
     use field;
+    use field_bit::FieldBit;
 
     #[test]
     fn test_initial() {
@@ -215,5 +242,59 @@ mod tests {
         assert_eq!(bf.count_connected_puyos(3, 2), 1);
         assert_eq!(bf.count_connected_puyos(6, 2), 1);
         assert_eq!(bf.count_connected_puyos(4, 2), 8);
+    }
+
+    #[test]
+    fn test_vanish_fast_1() {
+        let bf = BitField::from_str(concat!(
+            "..YY..",
+            "GGGGYY",
+            "RRRROY"));
+
+        let expected = FieldBit::from_str(concat!(
+            "1111..",
+            "11111."));
+
+        let mut vanishing = FieldBit::uninitialized();
+        assert!(bf.vanish_fast(&mut vanishing));
+        assert_eq!(expected, vanishing);
+    }
+
+    #[test]
+    fn test_vanish_fast_2() {
+        let bf = BitField::from_str(concat!(
+            "OOOOOO",
+            "OOGGOO",
+            "OOGGOO"));
+
+        let expected = FieldBit::from_str(concat!(
+            "..11..",
+            ".1111.",
+            ".1111."));
+
+        let mut vanishing = FieldBit::uninitialized();
+        assert!(bf.vanish_fast(&mut vanishing));
+        assert_eq!(expected, vanishing);
+    }
+
+    #[test]
+    fn test_vanish_fast_3() {
+        let bf = BitField::from_str(concat!(
+            "....RR", // 13
+            "OO.ORR", // 12
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 8
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 4
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO"));
+
+        let mut vanishing = FieldBit::uninitialized();
+        assert!(!bf.vanish_fast(&mut vanishing));
     }
 }
