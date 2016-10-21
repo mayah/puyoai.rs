@@ -3,7 +3,7 @@ use kumipuyo::Kumipuyo;
 use rand::{thread_rng, Rng};
 use std::vec::Vec;
 
-pub struct KumipuyoSeq{
+pub struct KumipuyoSeq {
     seq: Vec<Kumipuyo>,
 }
 
