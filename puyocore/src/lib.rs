@@ -19,6 +19,7 @@ pub mod position;
 pub mod rensa;
 pub mod score;
 pub mod sseext;
+pub mod tracker;
 
 pub use plain_field::PuyoPlainField;
 pub use plain_field::RealPlainField;

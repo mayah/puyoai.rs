@@ -7,6 +7,7 @@ use rensa::RensaResult;
 use score;
 use sseext;
 use std::{self, mem};
+use tracker::{RensaTracker, RensaNonTracker};
 use x86intrin::*;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -127,6 +128,16 @@ impl BitField {
     }
 
     pub fn simulate(&mut self) -> RensaResult {
+        let mut tracker = RensaNonTracker::new();
+        self.simulate_with_tracker(&mut tracker)
+    }
+
+    pub fn simulate_fast(&mut self) -> usize {
+        let mut tracker = RensaNonTracker::new();
+        self.simulate_fast_with_tracker(&mut tracker)
+    }
+
+    pub fn simulate_with_tracker<T: RensaTracker>(&mut self, tracker: &mut T) -> RensaResult {
         let escaped = self.escape_invisible();
 
         let mut score = 0;
@@ -136,7 +147,7 @@ impl BitField {
 
         loop {
             let mut erased = FieldBit::uninitialized();
-            let nth_chain_score = self.vanish(current_chain, &mut erased);
+            let nth_chain_score = self.vanish(current_chain, &mut erased, tracker);
             if nth_chain_score == 0 {
                 break;
             }
@@ -145,7 +156,7 @@ impl BitField {
             score += nth_chain_score;
             frames += frame::FRAMES_VANISH_ANIMATION;
 
-            let max_drops = self.drop_after_vanish(erased);
+            let max_drops = self.drop_after_vanish(erased, tracker);
             if max_drops > 0 {
                 frames += frame::FRAMES_TO_DROP_FAST[max_drops] + frame::FRAMES_GROUNDING;
             } else {
@@ -157,14 +168,14 @@ impl BitField {
         RensaResult::new(current_chain - 1, score, frames, quick)
     }
 
-    pub fn simulate_fast(&mut self) -> usize {
+    pub fn simulate_fast_with_tracker<T: RensaTracker>(&mut self, tracker: &mut T) -> usize {
         let escaped = self.escape_invisible();
         let mut current_chain = 1;
 
         let mut erased = FieldBit::uninitialized();
-        while self.vanish_fast(&mut erased) {
+        while self.vanish_fast(current_chain, &mut erased, tracker) {
             current_chain += 1;
-            self.drop_after_vanish_fast(erased);
+            self.drop_after_vanish_fast(erased, tracker);
         }
 
         self.recover_invisible(&escaped);
@@ -187,7 +198,7 @@ impl BitField {
         }
     }
 
-    pub fn vanish_fast(&self, erased: &mut FieldBit) -> bool {
+    pub fn vanish_fast<T: RensaTracker>(&self, current_chain: usize, erased: &mut FieldBit, tracker: &mut T) -> bool {
         *erased = FieldBit::empty();
         let mut did_erase = false;
 
@@ -209,11 +220,11 @@ impl BitField {
         let ojama_erased = erased.expand1(self.bits(PuyoColor::OJAMA)).masked_field_12();
         erased.set_all(ojama_erased);
 
-        // tracker->trackVanish(currentChain, *erased, ojamaErased);
+        tracker.track_vanish(current_chain, erased, &ojama_erased);
         return true;
     }
 
-    pub fn vanish(&self, current_chain: usize, erased: &mut FieldBit) -> usize {
+    pub fn vanish<T: RensaTracker>(&self, current_chain: usize, erased: &mut FieldBit, tracker: &mut T) -> usize {
         let mut num_erased_puyos = 0;
         let mut num_colors = 0;
         let mut long_bonus_coef = 0;
@@ -253,18 +264,18 @@ impl BitField {
         let chain_bonus_coef = score::chain_bonus(current_chain);
         let rensa_bonus_coef = score::calculate_rensa_bonus_coef(chain_bonus_coef, long_bonus_coef, color_bonus_coef);
 
-        // tracker->trackCoef(currentChain, numErasedPuyos, longBonusCoef, colorBonusCoef);
+        tracker.track_coef(current_chain, num_erased_puyos, long_bonus_coef, color_bonus_coef);
 
         // Removes ojama.
         let ojama_erased = erased.expand1(self.bits(PuyoColor::OJAMA)).masked_field_12();
         erased.set_all(ojama_erased);
 
-        // tracker->trackVanish(currentChain, *erased, ojamaErased);
+        tracker.track_vanish(current_chain, erased, &ojama_erased);
 
         10 * num_erased_puyos * rensa_bonus_coef
     }
 
-    pub fn drop_after_vanish(&mut self, erased: FieldBit) -> usize {
+    pub fn drop_after_vanish<T: RensaTracker>(&mut self, erased: FieldBit, tracker: &mut T) -> usize {
         // Set 1 at non-empty position.
         // Remove 1 bits from the positions where they are erased.
         let nonempty = mm_andnot_si128(erased.as_m128i(), (self.m[0] | self.m[1] | self.m[2]).as_m128i());
@@ -275,12 +286,12 @@ impl BitField {
         let num_holes = sseext::mm_popcnt_epi16(holes);
         let max_drops = sseext::mm_hmax_epu16(num_holes);
 
-        self.drop_after_vanish_fast(erased);
+        self.drop_after_vanish_fast(erased, tracker);
 
         max_drops as usize
     }
 
-    pub fn drop_after_vanish_fast(&mut self, erased: FieldBit) {
+    pub fn drop_after_vanish_fast<T: RensaTracker>(&mut self, erased: FieldBit, tracker: &mut T) {
         let ones = sseext::mm_setone_si128();
 
         let t = mm_xor_si128(erased.as_m128i(), ones);
@@ -315,6 +326,8 @@ impl BitField {
         self.m[0] = FieldBit::new(d[0].as_m128i());
         self.m[1] = FieldBit::new(d[1].as_m128i());
         self.m[2] = FieldBit::new(d[2].as_m128i());
+
+        tracker.track_drop(old_low_bits, old_high_bits, new_low_bits, new_high_bits);
     }
 }
 
@@ -341,6 +354,7 @@ mod tests {
     use field;
     use field_bit::FieldBit;
     use frame;
+    use tracker::RensaNonTracker;
 
     struct SimulationTestcase {
         field: BitField,
@@ -506,10 +520,11 @@ mod tests {
             "11111."));
 
         let mut vanishing = FieldBit::uninitialized();
-        assert!(bf.vanish_fast(&mut vanishing));
+        let mut tracker = RensaNonTracker::new();
+        assert!(bf.vanish_fast(1, &mut vanishing, &mut tracker));
         assert_eq!(expected, vanishing);
 
-        assert_eq!(bf.vanish(1, &mut vanishing), 80 * 3);
+        assert_eq!(bf.vanish(1, &mut vanishing, &mut tracker), 80 * 3);
         assert_eq!(expected, vanishing);
     }
 
@@ -526,10 +541,11 @@ mod tests {
             ".1111."));
 
         let mut vanishing = FieldBit::uninitialized();
-        assert!(bf.vanish_fast(&mut vanishing));
+        let mut tracker = RensaNonTracker::new();
+        assert!(bf.vanish_fast(1, &mut vanishing, &mut tracker));
         assert_eq!(expected, vanishing);
 
-        assert_eq!(bf.vanish(1, &mut vanishing), 40);
+        assert_eq!(bf.vanish(1, &mut vanishing, &mut tracker), 40);
         assert_eq!(expected, vanishing);
     }
 
@@ -551,8 +567,9 @@ mod tests {
             "OOOOOO"));
 
         let mut vanishing = FieldBit::uninitialized();
-        assert!(!bf.vanish_fast(&mut vanishing));
-        assert_eq!(bf.vanish(1, &mut vanishing), 0);
+        let mut tracker = RensaNonTracker::new();
+        assert!(!bf.vanish_fast(1, &mut vanishing, &mut tracker));
+        assert_eq!(bf.vanish(1, &mut vanishing, &mut tracker), 0);
     }
 
     #[test]
@@ -563,8 +580,10 @@ mod tests {
         let erased = FieldBit::from_str(concat!(
             "1111.."));
 
+        let mut tracker = RensaNonTracker::new();
+
         let invisible = bf.escape_invisible();
-        bf.drop_after_vanish_fast(erased);
+        bf.drop_after_vanish_fast(erased, &mut tracker);
         bf.recover_invisible(&invisible);
 
         let expected = BitField::from_str(concat!(
