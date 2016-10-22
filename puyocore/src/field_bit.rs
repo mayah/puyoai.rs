@@ -212,6 +212,31 @@ impl FieldBit {
         FieldBit { m: m }
     }
 
+    pub fn iterate_bit_with_masking<F: FnMut(FieldBit) -> FieldBit>(&self, mut callback: F) {
+        let zero = mm_setzero_si128();
+        let down_ones = mm_cvtsi64_si128(-1 as i64);
+        let up_ones = mm_slli_si128(down_ones, 8);
+
+        let mut current = self.m;
+
+        // upper is zero?
+        while mm_testz_si128(up_ones, current) == 0 {
+            // y = x & (-x)
+            let y = mm_and_si128(current, mm_sub_epi64(zero, current));
+            let z = mm_and_si128(up_ones, y);
+            let mask = callback(FieldBit::new(z));
+            current = mm_andnot_si128(mask.as_m128i(), current);
+        }
+
+        while mm_testz_si128(down_ones, current) == 0 {
+            // y = x & (-x)
+            let y = mm_and_si128(current, mm_sub_epi64(zero, current));
+            let z = mm_and_si128(down_ones, y);
+            let mask = callback(FieldBit::new(z));
+            current = mm_andnot_si128(mask.as_m128i(), current);
+        }
+    }
+
     fn check_in_range(x: usize, y: usize) -> bool {
         x < 8 && y < 16
     }
@@ -751,5 +776,31 @@ mod field_bit_256_tests {
                 assert!(!vanishing.get_high(x, y));
             }
         }
+    }
+
+    #[test]
+    fn test_iterate_bit_with_masking() {
+        let mut bf = FieldBit::empty();
+        bf.set(1, 2);
+        bf.set(2, 3);
+        bf.set(3, 4);
+        bf.set(4, 5);
+        bf.set(5, 6);
+        bf.set(6, 7);
+
+        assert_eq!(6, bf.popcount());
+
+        let mut count = 0;
+        let mut iterated = FieldBit::empty();
+        bf.iterate_bit_with_masking(|x: FieldBit| -> FieldBit {
+            iterated.set_all(x);
+            assert_eq!(1, x.popcount());
+            count += 1;
+
+            x
+        });
+
+        assert_eq!(6, count);
+        assert_eq!(bf, iterated);
     }
 }
