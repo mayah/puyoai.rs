@@ -9,6 +9,7 @@ use position::Position;
 use rensa::RensaResult;
 use score;
 
+#[derive(Clone)]
 pub struct PlainField<C: Color<C>> {
     field: [[C; field::MAP_HEIGHT]; field::MAP_WIDTH],
 }

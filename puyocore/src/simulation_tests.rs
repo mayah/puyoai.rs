@@ -1,8 +1,9 @@
+use bit_field::BitField;
 use frame;
 use plain_field::PuyoPlainField;
 use rensa::RensaResult;
 
-fn run_test(mut pf: PuyoPlainField, expected_result: RensaResult) {
+fn run_plainfield_test(mut pf: PuyoPlainField, expected_result: &RensaResult) {
     let actual_result = pf.simulate();
 
     assert_eq!(actual_result.chains, expected_result.chains);
@@ -12,6 +13,23 @@ fn run_test(mut pf: PuyoPlainField, expected_result: RensaResult) {
         assert_eq!(actual_result.frames, expected_result.frames);
     }
     assert_eq!(actual_result.quick, expected_result.quick);
+}
+
+fn run_bitfield_test(mut bf: BitField, expected_result: &RensaResult) {
+    let actual_result = bf.simulate();
+
+    assert_eq!(actual_result.chains, expected_result.chains);
+    assert_eq!(actual_result.score, expected_result.score);
+    // Check only frames is not zero.
+    if expected_result.frames > 0 {
+        assert_eq!(actual_result.frames, expected_result.frames);
+    }
+    assert_eq!(actual_result.quick, expected_result.quick);
+}
+
+fn run_test(original: PuyoPlainField, expected_result: RensaResult) {
+    run_plainfield_test(original.clone(), &expected_result);
+    run_bitfield_test(BitField::from_plain_field(original), &expected_result);
 }
 
 #[test]
