@@ -1,12 +1,12 @@
 pub struct RensaResult {
-    pub chains: i32,
-    pub score: i32,
-    pub frames: i32,
+    pub chains: usize,
+    pub score: usize,
+    pub frames: usize,
     pub quick: bool
 }
 
 impl RensaResult {
-    pub fn new(chains: i32, score: i32, frames: i32, quick: bool) -> RensaResult {
+    pub fn new(chains: usize, score: usize, frames: usize, quick: bool) -> RensaResult {
         RensaResult {
             chains: chains,
             score: score,
@@ -15,7 +15,7 @@ impl RensaResult {
         }
     }
 
-    pub fn new_empty() -> RensaResult {
+    pub fn empty() -> RensaResult {
         RensaResult::new(0, 0, 0, false)
     }
 }

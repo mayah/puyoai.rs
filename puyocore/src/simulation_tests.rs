@@ -7,8 +7,8 @@ fn run_test(mut pf: PuyoPlainField, expected_result: RensaResult) {
 
     assert_eq!(actual_result.chains, expected_result.chains);
     assert_eq!(actual_result.score, expected_result.score);
-    // Check only frames is positive.
-    if expected_result.frames >= 0 {
+    // Check only frames is not zero.
+    if expected_result.frames > 0 {
         assert_eq!(actual_result.frames, expected_result.frames);
     }
     assert_eq!(actual_result.quick, expected_result.quick);
@@ -157,7 +157,7 @@ fn test_simulate_19rensa_case1() {
     let expected_result = RensaResult {
         chains: 19,
         score: 175080,
-        frames: -1,
+        frames: 0,
         quick: true,
     };
 
@@ -167,27 +167,27 @@ fn test_simulate_19rensa_case1() {
 #[test]
 fn test_simulate() {
     run_test(PuyoPlainField::from_str(".B.GRBBGRRYRRRYYGYRBYRGRYBYRGYYBGBYRBRGBYRGRGYGYRYYGYYGRGYGRGBGYRRYBGBGBRGBGBB"),
-             RensaResult::new(19, 175080, -1, true));
+             RensaResult::new(19, 175080, 0, true));
     run_test(PuyoPlainField::from_str("B..RYGGYGYGBGRRRBRGBRYBGRRGGYGYYGYRRYGRBRBRBBGYGRGGYRRRBGRGRYBYRBBRRYGGBRBBYRY"),
-             RensaResult::new(19, 175080, -1, true));
+             RensaResult::new(19, 175080, 0, true));
     run_test(PuyoPlainField::from_str("...BB..B.RBB.RBRBO.RBGRB.GRGRB.GRYRB.YGYGR.YGYGR.BYBYG.BYBYGBOBOYGRRRROYBBBOBB"),
-             RensaResult::new(2, 38540, -1, true));
+             RensaResult::new(2, 38540, 0, true));
     run_test(PuyoPlainField::from_str(".B.BB..R.RBB.GBRBO.GBGRB.YRGRB.YRYRB.YGYGR.BGYGRGRGBGRGGYBYGYGBOBYYRRROBBBBOBB"),
-             RensaResult::new(3, 43260, -1, true));
+             RensaResult::new(3, 43260, 0, true));
     run_test(PuyoPlainField::from_str("...BB..R.RBB.GBRBOGGBGRBRYRGRBRYRYRBRYGYGRRBGYGRORGBGRGGYBYGYGBOBYYRRROBBBBOBB"),
-             RensaResult::new(4, 50140, -1, true));
+             RensaResult::new(4, 50140, 0, true));
     run_test(PuyoPlainField::from_str("GRBBB.BGYRBBYYYRBOOGBGRBBYRGRBBYRGRBBYGYGROBGYGRGRGBGRGGYBYYYOBOBYYRRROBBBBOBB"),
-             RensaResult::new(5, 68700, -1, true));
+             RensaResult::new(5, 68700, 0, true));
     run_test(PuyoPlainField::from_str("RRRROOOOROROROROOROOROOORORORRROOOORROROOOOORRORROOOORRROOOROOOORORRROROOOOORO"),
-             RensaResult::new(4, 4840, -1, true));
+             RensaResult::new(4, 4840, 0, true));
     run_test(PuyoPlainField::from_str("BRBBRRBRRRBRRBRBRBRBRBRBRBRBRBBRBRBRRRBBRRBBRRBBRBRBRBBRBRBRBBRBRRRRBRBBRBBRRB"),
-             RensaResult::new(9, 49950, -1, true));
+             RensaResult::new(9, 49950, 0, true));
     run_test(PuyoPlainField::from_str("RRRRRYBRRYOORRYOYRBYRRROBRYOYYBYBYOBRBRBBORRORRROOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"),
-             RensaResult::new(9, 32760, -1, true));
+             RensaResult::new(9, 32760, 0, true));
     run_test(PuyoPlainField::from_str("YYGBRGRYYBBBYYOYGGRGORGBRBORRGRYOYYYYYOBRGRBGRGGBBYRRYGGYBBBGRRYRYRGYRYYGRRBBB"),
-             RensaResult::new(18, 155980, -1, true));
+             RensaResult::new(18, 155980, 0, true));
     run_test(PuyoPlainField::from_str("RRR.RRORRROROORORRROOROORORORRORORORRORORORROROROORROORROORRROROROORORORORRORR"),
-             RensaResult::new(11, 47080, -1, true));
+             RensaResult::new(11, 47080, 0, true));
     run_test(PuyoPlainField::from_str("......RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"),
-             RensaResult::new(1, 7200, -1, true));
+             RensaResult::new(1, 7200, 0, true));
 }

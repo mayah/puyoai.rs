@@ -1,7 +1,10 @@
 use color::{self, PuyoColor};
 use field;
 use field_bit::FieldBit;
+use frame;
 use plain_field::PuyoPlainField;
+use rensa::RensaResult;
+use score;
 use sseext;
 use std::{self, mem};
 use x86intrin::*;
@@ -123,6 +126,51 @@ impl BitField {
         FieldBit::new(v)
     }
 
+    pub fn simulate(&mut self) -> RensaResult {
+        let escaped = self.escape_invisible();
+
+        let mut score = 0;
+        let mut frames = 0;
+        let mut quick = false;
+        let mut current_chain = 1;
+
+        loop {
+            let mut erased = FieldBit::uninitialized();
+            let nth_chain_score = self.vanish(current_chain, &mut erased);
+            if nth_chain_score == 0 {
+                break;
+            }
+
+            current_chain += 1;
+            score += nth_chain_score;
+            frames += frame::FRAMES_VANISH_ANIMATION;
+
+            let max_drops = self.drop_after_vanish(erased);
+            if max_drops > 0 {
+                frames += frame::FRAMES_TO_DROP_FAST[max_drops] + frame::FRAMES_GROUNDING;
+            } else {
+                quick = true;
+            }
+        }
+
+        self.recover_invisible(&escaped);
+        RensaResult::new(current_chain - 1, score, frames, quick)
+    }
+
+    pub fn simulate_fast(&mut self) -> usize {
+        let escaped = self.escape_invisible();
+        let mut current_chain = 1;
+
+        let mut erased = FieldBit::uninitialized();
+        while self.vanish_fast(&mut erased) {
+            current_chain += 1;
+            self.drop_after_vanish_fast(erased);
+        }
+
+        self.recover_invisible(&escaped);
+        current_chain - 1
+    }
+
     pub fn escape_invisible(&mut self) -> BitField {
         let mut escaped = BitField::uninitialized();
         for i in 0 .. 3 {
@@ -163,6 +211,73 @@ impl BitField {
 
         // tracker->trackVanish(currentChain, *erased, ojamaErased);
         return true;
+    }
+
+    pub fn vanish(&self, current_chain: usize, erased: &mut FieldBit) -> usize {
+        let mut num_erased_puyos = 0;
+        let mut num_colors = 0;
+        let mut long_bonus_coef = 0;
+
+        *erased = FieldBit::empty();
+        for c in &color::NORMAL_PUYO_COLORS {
+            let mask = self.bits(*c).masked_field_12();
+            let mut vanishing = FieldBit::uninitialized();
+            if !mask.find_vanishing_bits(&mut vanishing) {
+                continue
+            }
+
+            num_colors += 1;
+            erased.set_all(vanishing);
+
+            let pc = vanishing.popcount();
+            num_erased_puyos += pc;
+
+            if pc <= 7 {
+                long_bonus_coef += score::long_bonus(pc);
+                continue;
+            }
+
+            vanishing.iterate_bit_with_masking(|x: FieldBit| -> FieldBit {
+                let expanded = x.expand(&mask);
+                let pc = expanded.popcount();
+                long_bonus_coef += score::long_bonus(pc);
+                expanded
+            });
+        }
+
+        if num_colors == 0 {
+            return 0
+        }
+
+        let color_bonus_coef = score::color_bonus(num_colors);
+        let chain_bonus_coef = score::chain_bonus(current_chain);
+        let rensa_bonus_coef = score::calculate_rensa_bonus_coef(chain_bonus_coef, long_bonus_coef, color_bonus_coef);
+
+        // tracker->trackCoef(currentChain, numErasedPuyos, longBonusCoef, colorBonusCoef);
+
+        // Removes ojama.
+        let ojama_erased = erased.expand1(self.bits(PuyoColor::OJAMA)).masked_field_12();
+        erased.set_all(ojama_erased);
+
+        // tracker->trackVanish(currentChain, *erased, ojamaErased);
+
+        10 * num_erased_puyos * rensa_bonus_coef
+    }
+
+    pub fn drop_after_vanish(&mut self, erased: FieldBit) -> usize {
+        // Set 1 at non-empty position.
+        // Remove 1 bits from the positions where they are erased.
+        let nonempty = mm_andnot_si128(erased.as_m128i(), (self.m[0] | self.m[1] | self.m[2]).as_m128i());
+
+        // Find the holes. The number of holes for each column is the number of
+        // drops of the column.
+        let holes = mm_and_si128(sseext::mm_porr_epi16(nonempty), erased.as_m128i());
+        let num_holes = sseext::mm_popcnt_epi16(holes);
+        let max_drops = sseext::mm_hmax_epu16(num_holes);
+
+        self.drop_after_vanish_fast(erased);
+
+        max_drops as usize
     }
 
     pub fn drop_after_vanish_fast(&mut self, erased: FieldBit) {
@@ -225,6 +340,15 @@ mod tests {
     use color::PuyoColor;
     use field;
     use field_bit::FieldBit;
+    use frame;
+
+    struct SimulationTestcase {
+        field: BitField,
+        chain: usize,
+        score: usize,
+        frame: usize,
+        quick: bool,
+    }
 
     #[test]
     fn test_initial() {
@@ -320,7 +444,58 @@ mod tests {
     }
 
     #[test]
-    fn test_vanish_fast_1() {
+    fn test_simulate() {
+        let simulation_testcases = &[
+            SimulationTestcase {
+                field: BitField::from_str(concat!(
+                    ".BBBB.")),
+                chain: 1,
+                score: 40,
+                frame: frame::FRAMES_VANISH_ANIMATION,
+                quick: true,
+            },
+            SimulationTestcase {
+                field: BitField::from_str(concat!(
+                    ".RBRB.",
+                    "RBRBR.",
+                    "RBRBR.",
+                    "RBRBRR")),
+                chain: 5,
+                score: 40 + 40 * 8 + 40 * 16 + 40 * 32 + 40 * 64,
+                frame: frame::FRAMES_VANISH_ANIMATION * 5 + frame::FRAMES_TO_DROP_FAST[3] * 4 + frame::FRAMES_GROUNDING * 4,
+                quick: true,
+            },
+            SimulationTestcase {
+                field: BitField::from_str(concat!(
+                    ".YGGY.",
+                    "BBBBBB",
+                    "GYBBYG",
+                    "BBBBBB")),
+                chain: 1,
+                score: 140 * 10,
+                frame: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[3] + frame::FRAMES_GROUNDING,
+                quick: false
+            },
+        ];
+
+        for testcase in simulation_testcases {
+            let mut bf = testcase.field.clone();
+            let chain = bf.simulate_fast();
+            assert_eq!(testcase.chain, chain)
+        }
+
+        for testcase in simulation_testcases {
+            let mut bf = testcase.field.clone();
+            let rensa_result = bf.simulate();
+            assert_eq!(testcase.chain, rensa_result.chains);
+            assert_eq!(testcase.score, rensa_result.score);
+            assert_eq!(testcase.frame, rensa_result.frames);
+            assert_eq!(testcase.quick, rensa_result.quick);
+        }
+    }
+
+    #[test]
+    fn test_vanish_1() {
         let bf = BitField::from_str(concat!(
             "..YY..",
             "GGGGYY",
@@ -333,10 +508,13 @@ mod tests {
         let mut vanishing = FieldBit::uninitialized();
         assert!(bf.vanish_fast(&mut vanishing));
         assert_eq!(expected, vanishing);
+
+        assert_eq!(bf.vanish(1, &mut vanishing), 80 * 3);
+        assert_eq!(expected, vanishing);
     }
 
     #[test]
-    fn test_vanish_fast_2() {
+    fn test_vanish_2() {
         let bf = BitField::from_str(concat!(
             "OOOOOO",
             "OOGGOO",
@@ -350,10 +528,13 @@ mod tests {
         let mut vanishing = FieldBit::uninitialized();
         assert!(bf.vanish_fast(&mut vanishing));
         assert_eq!(expected, vanishing);
+
+        assert_eq!(bf.vanish(1, &mut vanishing), 40);
+        assert_eq!(expected, vanishing);
     }
 
     #[test]
-    fn test_vanish_fast_3() {
+    fn test_vanish_3() {
         let bf = BitField::from_str(concat!(
             "....RR", // 13
             "OO.ORR", // 12
@@ -371,6 +552,7 @@ mod tests {
 
         let mut vanishing = FieldBit::uninitialized();
         assert!(!bf.vanish_fast(&mut vanishing));
+        assert_eq!(bf.vanish(1, &mut vanishing), 0);
     }
 
     #[test]

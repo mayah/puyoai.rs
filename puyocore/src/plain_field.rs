@@ -77,7 +77,7 @@ impl<C: Color<C>> PlainField<C> {
     }
 
     // Returns the number of max drops.
-    pub fn drop(&mut self) -> i32 {
+    pub fn drop(&mut self) -> usize {
         let mut max_drops = 0;
         for x in 1 .. 7 {
             let mut h = 1;
@@ -310,7 +310,7 @@ impl<C: Color<C>> PlainField<C> {
         cnt
     }
 
-    pub fn vanish(&mut self, current_chain: i32) -> i32 {
+    pub fn vanish(&mut self, current_chain: usize) -> usize {
         let mut checker = FieldChecker::new();
         // All the positions of erased puyos will be stored here.
         let mut erase_queue : [Position; 72] = [Position::new(0, 0); 72];
@@ -318,7 +318,7 @@ impl<C: Color<C>> PlainField<C> {
 
         let mut used_colors : [bool; 8] = [false; 8];
         let mut num_used_colors = 0;
-        let mut long_bonus_coef: i32 = 0;
+        let mut long_bonus_coef = 0;
 
         for x in 1 .. (field::WIDTH + 1) {
             for y in 1 .. (field::HEIGHT + 1) {
@@ -335,7 +335,7 @@ impl<C: Color<C>> PlainField<C> {
                 }
 
                 erase_queue_head = new_head;
-                long_bonus_coef += score::long_bonus(connected_puyo_num as i32);
+                long_bonus_coef += score::long_bonus(connected_puyo_num);
                 if !used_colors[c.as_usize()] {
                     num_used_colors += 1;
                     used_colors[c.as_usize()] = true;
@@ -373,12 +373,12 @@ impl<C: Color<C>> PlainField<C> {
             }
         }
 
-        let rensa_bonus_coef: i32 = score::calculate_rensa_bonus_coef(
+        let rensa_bonus_coef = score::calculate_rensa_bonus_coef(
             score::chain_bonus(current_chain),
             long_bonus_coef,
             score::color_bonus(num_used_colors)
         );
-        10 * (erase_queue_head as i32) * rensa_bonus_coef
+        10 * erase_queue_head * rensa_bonus_coef
     }
 
     pub fn simulate(&mut self) -> RensaResult {
