@@ -241,40 +241,72 @@ impl BitField {
     }
 
     pub fn vanish<T: RensaTracker>(&self, current_chain: usize, erased: &mut FieldBit, tracker: &mut T) -> usize {
+        let mut erased256 = FieldBit256::empty();
+
         let mut num_erased_puyos = 0;
         let mut num_colors = 0;
         let mut long_bonus_coef = 0;
+        let mut did_erase = false;
 
-        *erased = FieldBit::empty();
-        for c in &color::NORMAL_PUYO_COLORS {
-            let mask = self.bits(*c).masked_field_12();
-            let mut vanishing = FieldBit::uninitialized();
+        for i in 0 .. 2 {
+            let t = (if i == 0 {
+                self.m[1].andnot(self.m[2])
+            } else {
+                self.m[1] & self.m[2]
+            }).masked_field_12();
+
+            let high_mask = self.m[0] & t;
+            let low_mask = self.m[0].andnot(t);
+
+            let mask = FieldBit256::from_low_high(low_mask, high_mask);
+            let mut vanishing = FieldBit256::uninitialized();
             if !mask.find_vanishing_bits(&mut vanishing) {
-                continue
-            }
-
-            num_colors += 1;
-            erased.set_all(vanishing);
-
-            let pc = vanishing.popcount();
-            num_erased_puyos += pc;
-
-            if pc <= 7 {
-                long_bonus_coef += score::long_bonus(pc);
                 continue;
             }
+            erased256.set_all(vanishing);
+            did_erase = true;
 
-            vanishing.iterate_bit_with_masking(|x: FieldBit| -> FieldBit {
-                let expanded = x.expand(&mask);
-                let pc = expanded.popcount();
-                long_bonus_coef += score::long_bonus(pc);
-                expanded
-            });
+            let (low_count, high_count) = vanishing.popcount_low_high();
+
+            if high_count > 0 {
+                num_colors += 1;
+                num_erased_puyos += high_count;
+                if high_count <= 7 {
+                    long_bonus_coef += score::long_bonus(high_count);
+                } else {
+                    let high = vanishing.high();
+                    // slowpath
+                    high.iterate_bit_with_masking(|x: FieldBit| -> FieldBit {
+                        let expanded = x.expand(&high_mask);
+                        long_bonus_coef += score::long_bonus(expanded.popcount());
+                        expanded
+                    });
+                }
+            }
+
+            if low_count > 0 {
+                num_colors += 1;
+                num_erased_puyos += low_count;
+                if low_count <= 7 {
+                    long_bonus_coef += score::long_bonus(low_count);
+                } else {
+                    let low = vanishing.low();
+                    // slowpath
+                    low.iterate_bit_with_masking(|x: FieldBit| -> FieldBit {
+                        let expanded = x.expand(&low_mask);
+                        long_bonus_coef += score::long_bonus(expanded.popcount());
+                        expanded
+                    });
+                }
+            }
         }
 
-        if num_colors == 0 {
-            return 0
+        if !did_erase {
+            *erased = FieldBit::empty();
+            return 0;
         }
+
+        *erased = erased256.low() | erased256.high();
 
         let color_bonus_coef = score::color_bonus(num_colors);
         let chain_bonus_coef = score::chain_bonus(current_chain);

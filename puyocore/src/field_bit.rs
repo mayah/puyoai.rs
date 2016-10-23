@@ -400,6 +400,10 @@ impl FieldBit256 {
         return true;
     }
 
+    pub fn popcount_low_high(&self) -> (usize, usize) {
+        (self.low().popcount(), self.high().popcount())
+    }
+
     fn check_in_range(x: usize, y: usize) -> bool {
         x < 8 && y < 16
     }
