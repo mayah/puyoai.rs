@@ -93,6 +93,10 @@ impl FieldBit {
         mm_testz_si128(self.m, self.m) != 0
     }
 
+    pub fn andnot(&self, other: FieldBit) -> FieldBit {
+        FieldBit::new(mm_andnot_si128(self.m, other.m))
+    }
+
     pub fn masked_field_12(&self) -> FieldBit {
         FieldBit {
             m: mm_and_si128(self.m, mm_setr_epi16(0, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0x1FFE, 0)),
@@ -335,6 +339,10 @@ impl FieldBit256 {
 
     pub fn set_high(&mut self, x: usize, y: usize) {
         self.m = self.m | FieldBit256::onebit(LowHigh::HIGH, x, y)
+    }
+
+    pub fn set_all(&mut self, fb: FieldBit256) {
+        self.m = self.m | fb.m
     }
 
     pub fn expand(&self, mask: FieldBit256) -> FieldBit256 {

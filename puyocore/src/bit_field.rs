@@ -1,6 +1,6 @@
 use color::{self, PuyoColor};
 use field;
-use field_bit::FieldBit;
+use field_bit::{FieldBit, FieldBit256};
 use frame;
 use plain_field::PuyoPlainField;
 use rensa::RensaResult;
@@ -199,29 +199,45 @@ impl BitField {
     }
 
     pub fn vanish_fast<T: RensaTracker>(&self, current_chain: usize, erased: &mut FieldBit, tracker: &mut T) -> bool {
-        *erased = FieldBit::empty();
+        let mut erased256 = FieldBit256::empty();
         let mut did_erase = false;
 
-        for c in &color::NORMAL_PUYO_COLORS {
-            let mask = self.bits(*c).masked_field_12();
-            let mut vanishing = FieldBit::uninitialized();
-            if !mask.find_vanishing_bits(&mut vanishing) {
-                continue
-            }
+        // RED (100) & BLUE (101)
+        {
+            let t = self.m[1].andnot(self.m[2]).masked_field_12();
+            let mask = FieldBit256::from_low_high(self.m[0].andnot(t), self.m[0] & t);
 
-            erased.set_all(vanishing);
-            did_erase = true
+            let mut vanishing = FieldBit256::uninitialized();
+            if mask.find_vanishing_bits(&mut vanishing) {
+                erased256.set_all(vanishing);
+                did_erase = true;
+            }
+        }
+
+        // YELLOW (110) & GREEN (111)
+        {
+            let t = (self.m[1] & self.m[2]).masked_field_12();
+            let mask = FieldBit256::from_low_high(self.m[0].andnot(t), self.m[0] & t);
+
+            let mut vanishing = FieldBit256::uninitialized();
+            if mask.find_vanishing_bits(&mut vanishing) {
+                erased256.set_all(vanishing);
+                did_erase = true;
+            }
         }
 
         if !did_erase {
+            *erased = FieldBit::empty();
             return false;
         }
+
+        *erased = erased256.low() | erased256.high();
 
         let ojama_erased = erased.expand1(self.bits(PuyoColor::OJAMA)).masked_field_12();
         erased.set_all(ojama_erased);
 
         tracker.track_vanish(current_chain, erased, &ojama_erased);
-        return true;
+        true
     }
 
     pub fn vanish<T: RensaTracker>(&self, current_chain: usize, erased: &mut FieldBit, tracker: &mut T) -> usize {
