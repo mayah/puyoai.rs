@@ -1,6 +1,5 @@
-use bit_field::BitField;
+use field::{BitField, PuyoPlainField};
 use frame;
-use plain_field::PuyoPlainField;
 use rensa::RensaResult;
 
 fn run_plainfield_test(mut pf: PuyoPlainField, expected_result: &RensaResult) {

@@ -1,8 +1,7 @@
 use color::{self, PuyoColor};
-use field;
+use field::{self, PuyoPlainField};
 use field_bit::{FieldBit, FieldBit256};
 use frame;
-use plain_field::PuyoPlainField;
 use rensa::RensaResult;
 use score;
 use sseext;

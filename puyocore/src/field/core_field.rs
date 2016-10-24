@@ -1,6 +1,5 @@
-use bit_field::BitField;
 use color::PuyoColor;
-use field;
+use field::{self, BitField};
 
 pub struct CoreField {
     field: BitField,
