@@ -7,6 +7,7 @@ extern crate x86intrin;
 pub mod bit_field;
 pub mod color;
 pub mod core_field;
+pub mod decision;
 pub mod field;
 mod field_bit;
 pub mod field_checker;
