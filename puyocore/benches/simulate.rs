@@ -4,7 +4,7 @@ extern crate puyocore;
 extern crate test;
 
 use test::Bencher;
-use puyocore::bit_field::BitField;
+use puyocore::field::BitField;
 
 #[bench]
 fn simulate_19rensa(b: &mut Bencher) {
