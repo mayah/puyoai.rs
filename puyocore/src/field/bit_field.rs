@@ -1,4 +1,4 @@
-use color::{self, PuyoColor};
+use color::{Color, PuyoColor};
 use field::{self, PuyoPlainField};
 use field_bit::{FieldBit, FieldBit256};
 use frame;
@@ -381,15 +381,15 @@ impl BitField {
 impl std::fmt::Display for BitField {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         // TODO(mayah): More sophisticated way?
-
+        let mut s = String::new();
         for y in 0 .. 16 {
             for x in 0 .. 8 {
-                write!(f, "{}", self.color(x, 15 - y));
+                s.push(self.color(x, 15 - y).to_char());
             }
-            writeln!(f, "{}", "");
+            s.push('\n');
         }
 
-        write!(f, "{}", "")
+        write!(f, "{}", s)
     }
 }
 
