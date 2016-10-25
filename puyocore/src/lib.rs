@@ -11,8 +11,6 @@ mod field_bit;
 pub mod field_checker;
 pub mod frame;
 pub mod kumipuyo;
-pub mod kumipuyo_pos;
-pub mod kumipuyo_seq;
 pub mod position;
 pub mod rensa;
 pub mod score;

@@ -1,5 +1,8 @@
 use color::PuyoColor;
 
+pub mod kumipuyo_pos;
+pub mod kumipuyo_seq;
+
 pub struct Kumipuyo {
     pub axis: PuyoColor,
     pub child: PuyoColor,
