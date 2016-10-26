@@ -3,10 +3,10 @@ use field::{self, PuyoPlainField};
 use field_bit::{FieldBit, FieldBit256};
 use frame;
 use rensa_result::RensaResult;
+use rensa_tracker::{RensaTracker, RensaNonTracker};
 use score;
 use sseext;
 use std::{self, mem};
-use tracker::{RensaTracker, RensaNonTracker};
 use x86intrin::*;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -401,7 +401,7 @@ mod tests {
     use field;
     use field_bit::FieldBit;
     use frame;
-    use tracker::RensaNonTracker;
+    use rensa_tracker::RensaNonTracker;
 
     struct SimulationTestcase {
         field: BitField,

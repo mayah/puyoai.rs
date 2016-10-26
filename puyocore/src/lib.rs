@@ -13,6 +13,6 @@ pub mod frame;
 pub mod kumipuyo;
 pub mod position;
 pub mod rensa_result;
+pub mod rensa_tracker;
 pub mod score;
 pub mod sseext;
-pub mod tracker;
