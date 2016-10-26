@@ -1,6 +1,7 @@
 use color::{Color, PuyoColor};
 use field::{self, PuyoPlainField};
-use field_bit::{FieldBit, FieldBit256};
+use field_bit::FieldBit;
+use field_bit_256::FieldBit256;
 use frame;
 use rensa_result::RensaResult;
 use rensa_tracker::{RensaTracker, RensaNonTracker};

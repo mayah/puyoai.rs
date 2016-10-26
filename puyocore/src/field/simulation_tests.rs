@@ -1,6 +1,9 @@
-use field::{BitField, PuyoPlainField};
+use field::PuyoPlainField;
 use frame;
 use rensa_result::RensaResult;
+
+#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
+use field::BitField;
 
 fn run_plainfield_test(mut pf: PuyoPlainField, expected_result: &RensaResult) {
     let actual_result = pf.simulate();
@@ -14,6 +17,7 @@ fn run_plainfield_test(mut pf: PuyoPlainField, expected_result: &RensaResult) {
     assert_eq!(actual_result.quick, expected_result.quick);
 }
 
+#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
 fn run_bitfield_test(mut bf: BitField, expected_result: &RensaResult) {
     let actual_result = bf.simulate();
 
@@ -26,9 +30,15 @@ fn run_bitfield_test(mut bf: BitField, expected_result: &RensaResult) {
     assert_eq!(actual_result.quick, expected_result.quick);
 }
 
+#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
 fn run_test(original: PuyoPlainField, expected_result: RensaResult) {
     run_plainfield_test(original.clone(), &expected_result);
     run_bitfield_test(BitField::from_plain_field(original), &expected_result);
+}
+
+#[cfg(not(all(target_feature = "avx2", target_feature = "bmi2")))]
+fn run_test(original: PuyoPlainField, expected_result: RensaResult) {
+    run_plainfield_test(original.clone(), &expected_result);
 }
 
 #[test]
