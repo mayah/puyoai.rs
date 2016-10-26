@@ -2,7 +2,7 @@ use color::{Color, PuyoColor};
 use field::{self, PuyoPlainField};
 use field_bit::{FieldBit, FieldBit256};
 use frame;
-use rensa::RensaResult;
+use rensa_result::RensaResult;
 use score;
 use sseext;
 use std::{self, mem};

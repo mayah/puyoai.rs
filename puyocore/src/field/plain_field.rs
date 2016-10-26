@@ -6,7 +6,7 @@ use field;
 use field_checker::FieldChecker;
 use frame;
 use position::Position;
-use rensa::RensaResult;
+use rensa_result::RensaResult;
 use score;
 
 #[derive(Clone)]

@@ -1,6 +1,6 @@
 use field::{BitField, PuyoPlainField};
 use frame;
-use rensa::RensaResult;
+use rensa_result::RensaResult;
 
 fn run_plainfield_test(mut pf: PuyoPlainField, expected_result: &RensaResult) {
     let actual_result = pf.simulate();

@@ -12,7 +12,7 @@ pub mod field_checker;
 pub mod frame;
 pub mod kumipuyo;
 pub mod position;
-pub mod rensa;
+pub mod rensa_result;
 pub mod score;
 pub mod sseext;
 pub mod tracker;
