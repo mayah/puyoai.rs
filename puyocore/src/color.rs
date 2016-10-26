@@ -9,6 +9,12 @@ pub trait Color<T> : Clone + Copy + PartialEq<T> {
     fn as_usize(&self) -> usize;
     fn to_char(&self) -> char;
     fn is_normal_color(&self) -> bool;
+
+    fn as_str(&self) -> &'static str;
+    // 2 byte string
+    fn as_str_wide(&self) -> &'static str;
+    // 2 byte string (with color escape sequence)
+    fn as_colored_str_wide(&self) -> &'static str;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -84,6 +90,45 @@ impl Color<PuyoColor> for PuyoColor {
             PuyoColor::BLUE   => 'B',
             PuyoColor::YELLOW => 'Y',
             PuyoColor::GREEN  => 'G',
+        }
+    }
+
+    fn as_str(&self) -> &'static str {
+        match *self {
+            PuyoColor::EMPTY  => " ",
+            PuyoColor::OJAMA  => "@",
+            PuyoColor::WALL   => "#",
+            PuyoColor::IRON   => "&",
+            PuyoColor::RED    => "R",
+            PuyoColor::BLUE   => "B",
+            PuyoColor::YELLOW => "Y",
+            PuyoColor::GREEN  => "G",
+        }
+    }
+
+    fn as_str_wide(&self) -> &'static str {
+        match *self {
+            PuyoColor::EMPTY  => "  ",
+            PuyoColor::OJAMA  => "@ ",
+            PuyoColor::WALL   => "# ",
+            PuyoColor::IRON   => "& ",
+            PuyoColor::RED    => "R ",
+            PuyoColor::BLUE   => "B ",
+            PuyoColor::YELLOW => "Y ",
+            PuyoColor::GREEN  => "G ",
+        }
+    }
+
+    fn as_colored_str_wide(&self) -> &'static str {
+        match *self {
+            PuyoColor::EMPTY  => "  ",
+            PuyoColor::OJAMA  => "@@",
+            PuyoColor::WALL   => "##",
+            PuyoColor::IRON   => "&&",
+            PuyoColor::RED    => "\x1b[41m  \x1b[49m",
+            PuyoColor::BLUE   => "\x1b[44m  \x1b[49m",
+            PuyoColor::YELLOW => "\x1b[43m  \x1b[49m",
+            PuyoColor::GREEN  => "\x1b[42m  \x1b[49m",
         }
     }
 }
