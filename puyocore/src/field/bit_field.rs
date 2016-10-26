@@ -479,7 +479,7 @@ mod tests {
 
         for x in 0 .. field::MAP_WIDTH {
             for y in 0 .. field::MAP_HEIGHT {
-                for c in color::ALL_PUYO_COLORS.iter() {
+                for c in color::puyo_color::ALL_PUYO_COLORS.iter() {
                     assert_eq!(bf.bits(*c).get(x, y), *c == bf.color(x, y));
                     assert_eq!(bf.is_color(x, y, *c), bf.is_color(x, y, *c));
                 }

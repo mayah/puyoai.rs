@@ -1,21 +1,5 @@
+use color::Color;
 use std;
-
-pub trait Color<T> : Clone + Copy + PartialEq<T> {
-    fn from_byte(b: u8) -> T;
-    fn empty_color() -> T;
-    fn ojama_color() -> T;
-    fn wall_color() -> T;
-
-    fn as_usize(&self) -> usize;
-    fn to_char(&self) -> char;
-    fn is_normal_color(&self) -> bool;
-
-    fn as_str(&self) -> &'static str;
-    // 2 byte string
-    fn as_str_wide(&self) -> &'static str;
-    // 2 byte string (with color escape sequence)
-    fn as_colored_str_wide(&self) -> &'static str;
-}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum PuyoColor {
@@ -151,6 +135,7 @@ pub const NORMAL_PUYO_COLORS: [PuyoColor; 4] = [
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::color::Color;
 
     #[test]
     fn it_works() {
@@ -192,16 +177,4 @@ mod tests {
         assert_eq!(PuyoColor::from_byte(b'Y'), PuyoColor::YELLOW);
         assert_eq!(PuyoColor::from_byte(b'G'), PuyoColor::GREEN);
     }
-}
-
-#[derive(Clone, Copy, PartialEq)]
-pub enum RealColor {
-    EMPTY  = 0,
-    WALL   = 1,
-    OJAMA  = 2,
-    RED    = 3,
-    BLUE   = 4,
-    YELLOW = 5,
-    GREEN  = 6,
-    PURPLE = 7,
 }
