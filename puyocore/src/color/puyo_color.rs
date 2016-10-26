@@ -154,7 +154,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_char() {
+    fn test_to_string() {
         assert_eq!(PuyoColor::EMPTY.to_string(), "EMPTY");
         assert_eq!(PuyoColor::OJAMA.to_string(), "OJAMA");
         assert_eq!(PuyoColor::WALL.to_string(), "WALL");
