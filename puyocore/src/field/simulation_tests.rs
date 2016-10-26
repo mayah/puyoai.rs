@@ -31,19 +31,19 @@ fn run_bitfield_test(mut bf: BitField, expected_result: &RensaResult) {
 }
 
 #[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
-fn run_test(original: PuyoPlainField, expected_result: RensaResult) {
-    run_plainfield_test(original.clone(), &expected_result);
-    run_bitfield_test(BitField::from_plain_field(original), &expected_result);
+fn run_test(src: &str, expected_result: RensaResult) {
+    run_plainfield_test(PuyoPlainField::from_str(src), &expected_result);
+    run_bitfield_test(BitField::from_str(src), &expected_result);
 }
 
 #[cfg(not(all(target_feature = "avx2", target_feature = "bmi2")))]
-fn run_test(original: PuyoPlainField, expected_result: RensaResult) {
-    run_plainfield_test(original.clone(), &expected_result);
+fn run_test(src: &str, expected_result: RensaResult) {
+    run_plainfield_test(PuyoPlainField::from_str(src), &expected_result);
 }
 
 #[test]
 fn test_simulate_1rensa_quick() {
-    let pf = PuyoPlainField::from_str("..RRRR");
+    let src = "..RRRR";
 
     let expected_result = RensaResult {
         chain: 1,
@@ -52,15 +52,14 @@ fn test_simulate_1rensa_quick() {
         quick: true,
     };
 
-    run_test(pf, expected_result);
+    run_test(src, expected_result);
 }
 
 #[test]
 fn test_simulate_1rensa_nonquick_case1() {
-    let pf = PuyoPlainField::from_str(concat!(
+    let src = concat!(
         ".....Y",
-        "..RRRR",
-    ));
+        "..RRRR");
 
     let expected_result = RensaResult {
         chain: 1,
@@ -69,16 +68,15 @@ fn test_simulate_1rensa_nonquick_case1() {
         quick: false,
     };
 
-    run_test(pf, expected_result);
+    run_test(src, expected_result);
 }
 
 #[test]
 fn test_simulate_1rensa_nonquick_case2() {
-    let pf = PuyoPlainField::from_str(concat!(
+    let src = concat!(
         ".....Y",
         ".....R",
-        "...RRR",
-    ));
+        "...RRR");
 
     let expected_result = RensaResult {
         chain: 1,
@@ -87,16 +85,15 @@ fn test_simulate_1rensa_nonquick_case2() {
         quick: false,
     };
 
-    run_test(pf, expected_result);
+    run_test(src, expected_result);
 }
 
 #[test]
 fn test_simulate_1rensa_nonquick_case3() {
-    let pf = PuyoPlainField::from_str(concat!(
+    let src = concat!(
         ".....Y",
         "....YR",
-        "...RRR",
-    ));
+        "...RRR");
 
     let expected_result = RensaResult {
         chain: 1,
@@ -105,16 +102,15 @@ fn test_simulate_1rensa_nonquick_case3() {
         quick: false,
     };
 
-    run_test(pf, expected_result);
+    run_test(src, expected_result);
 }
 
 #[test]
 fn test_simulate_2rensa_quick() {
-    let pf = PuyoPlainField::from_str(concat!(
+    let src = concat!(
         "Y.....",
         "RYY...",
-        "RRRY..",
-    ));
+        "RRRY..");
 
     let expected_result = RensaResult {
         chain: 2,
@@ -124,16 +120,15 @@ fn test_simulate_2rensa_quick() {
         quick: true,
     };
 
-    run_test(pf, expected_result);
+    run_test(src, expected_result);
 }
 
 #[test]
 fn test_simulate_2rensa_nonquick_case1() {
-    let pf = PuyoPlainField::from_str(concat!(
+    let src = concat!(
         "YB....",
         "RYY...",
-        "RRRY..",
-    ));
+        "RRRY..");
 
     let expected_result = RensaResult {
         chain: 2,
@@ -143,15 +138,15 @@ fn test_simulate_2rensa_nonquick_case1() {
         quick: false,
     };
 
-    run_test(pf, expected_result);
+    run_test(src, expected_result);
 }
 
 #[test]
 fn test_simulate_2rensa_nonquick_case2() {
-    let pf = PuyoPlainField::from_str(concat!(
+    let src = concat!(
         "..B...",
         "..BBYB",
-        "RRRRBB"));
+        "RRRRBB");
 
     let expected_result = RensaResult {
         chain: 2,
@@ -161,12 +156,12 @@ fn test_simulate_2rensa_nonquick_case2() {
         quick: false
     };
 
-    run_test(pf, expected_result);
+    run_test(src, expected_result);
 }
 
 #[test]
 fn test_simulate_19rensa_case1() {
-    let pf = PuyoPlainField::from_str(concat!(
+    let src = concat!(
         ".G.BRG",
         "GBRRYR",
         "RRYYBY",
@@ -179,7 +174,7 @@ fn test_simulate_19rensa_case1() {
         "BRBYBR",
         "BGBYRR",
         "YGBGBG",
-        "RBGBGG"));
+        "RBGBGG");
 
     let expected_result = RensaResult {
         chain: 19,
@@ -188,33 +183,33 @@ fn test_simulate_19rensa_case1() {
         quick: true,
     };
 
-    run_test(pf, expected_result);
+    run_test(src, expected_result);
 }
 
 #[test]
 fn test_simulate() {
-    run_test(PuyoPlainField::from_str(".B.GRBBGRRYRRRYYGYRBYRGRYBYRGYYBGBYRBRGBYRGRGYGYRYYGYYGRGYGRGBGYRRYBGBGBRGBGBB"),
+    run_test(".B.GRBBGRRYRRRYYGYRBYRGRYBYRGYYBGBYRBRGBYRGRGYGYRYYGYYGRGYGRGBGYRRYBGBGBRGBGBB",
              RensaResult::new(19, 175080, 0, true));
-    run_test(PuyoPlainField::from_str("B..RYGGYGYGBGRRRBRGBRYBGRRGGYGYYGYRRYGRBRBRBBGYGRGGYRRRBGRGRYBYRBBRRYGGBRBBYRY"),
+    run_test("B..RYGGYGYGBGRRRBRGBRYBGRRGGYGYYGYRRYGRBRBRBBGYGRGGYRRRBGRGRYBYRBBRRYGGBRBBYRY",
              RensaResult::new(19, 175080, 0, true));
-    run_test(PuyoPlainField::from_str("...BB..B.RBB.RBRBO.RBGRB.GRGRB.GRYRB.YGYGR.YGYGR.BYBYG.BYBYGBOBOYGRRRROYBBBOBB"),
+    run_test("...BB..B.RBB.RBRBO.RBGRB.GRGRB.GRYRB.YGYGR.YGYGR.BYBYG.BYBYGBOBOYGRRRROYBBBOBB",
              RensaResult::new(2, 38540, 0, true));
-    run_test(PuyoPlainField::from_str(".B.BB..R.RBB.GBRBO.GBGRB.YRGRB.YRYRB.YGYGR.BGYGRGRGBGRGGYBYGYGBOBYYRRROBBBBOBB"),
+    run_test(".B.BB..R.RBB.GBRBO.GBGRB.YRGRB.YRYRB.YGYGR.BGYGRGRGBGRGGYBYGYGBOBYYRRROBBBBOBB",
              RensaResult::new(3, 43260, 0, true));
-    run_test(PuyoPlainField::from_str("...BB..R.RBB.GBRBOGGBGRBRYRGRBRYRYRBRYGYGRRBGYGRORGBGRGGYBYGYGBOBYYRRROBBBBOBB"),
+    run_test("...BB..R.RBB.GBRBOGGBGRBRYRGRBRYRYRBRYGYGRRBGYGRORGBGRGGYBYGYGBOBYYRRROBBBBOBB",
              RensaResult::new(4, 50140, 0, true));
-    run_test(PuyoPlainField::from_str("GRBBB.BGYRBBYYYRBOOGBGRBBYRGRBBYRGRBBYGYGROBGYGRGRGBGRGGYBYYYOBOBYYRRROBBBBOBB"),
+    run_test("GRBBB.BGYRBBYYYRBOOGBGRBBYRGRBBYRGRBBYGYGROBGYGRGRGBGRGGYBYYYOBOBYYRRROBBBBOBB",
              RensaResult::new(5, 68700, 0, true));
-    run_test(PuyoPlainField::from_str("RRRROOOOROROROROOROOROOORORORRROOOORROROOOOORRORROOOORRROOOROOOORORRROROOOOORO"),
+    run_test("RRRROOOOROROROROOROOROOORORORRROOOORROROOOOORRORROOOORRROOOROOOORORRROROOOOORO",
              RensaResult::new(4, 4840, 0, true));
-    run_test(PuyoPlainField::from_str("BRBBRRBRRRBRRBRBRBRBRBRBRBRBRBBRBRBRRRBBRRBBRRBBRBRBRBBRBRBRBBRBRRRRBRBBRBBRRB"),
+    run_test("BRBBRRBRRRBRRBRBRBRBRBRBRBRBRBBRBRBRRRBBRRBBRRBBRBRBRBBRBRBRBBRBRRRRBRBBRBBRRB",
              RensaResult::new(9, 49950, 0, true));
-    run_test(PuyoPlainField::from_str("RRRRRYBRRYOORRYOYRBYRRROBRYOYYBYBYOBRBRBBORRORRROOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"),
+    run_test("RRRRRYBRRYOORRYOYRBYRRROBRYOYYBYBYOBRBRBBORRORRROOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
              RensaResult::new(9, 32760, 0, true));
-    run_test(PuyoPlainField::from_str("YYGBRGRYYBBBYYOYGGRGORGBRBORRGRYOYYYYYOBRGRBGRGGBBYRRYGGYBBBGRRYRYRGYRYYGRRBBB"),
+    run_test("YYGBRGRYYBBBYYOYGGRGORGBRBORRGRYOYYYYYOBRGRBGRGGBBYRRYGGYBBBGRRYRYRGYRYYGRRBBB",
              RensaResult::new(18, 155980, 0, true));
-    run_test(PuyoPlainField::from_str("RRR.RRORRROROORORRROOROORORORRORORORRORORORROROROORROORROORRROROROORORORORRORR"),
+    run_test("RRR.RRORRROROORORRROOROORORORRORORORRORORORROROROORROORROORRROROROORORORORRORR",
              RensaResult::new(11, 47080, 0, true));
-    run_test(PuyoPlainField::from_str("......RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"),
+    run_test("......RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
              RensaResult::new(1, 7200, 0, true));
 }
