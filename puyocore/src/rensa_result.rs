@@ -1,16 +1,16 @@
 pub struct RensaResult {
-    pub chains: usize,
+    pub chain: usize,
     pub score: usize,
-    pub frames: usize,
+    pub frame: usize,
     pub quick: bool
 }
 
 impl RensaResult {
-    pub fn new(chains: usize, score: usize, frames: usize, quick: bool) -> RensaResult {
+    pub fn new(chain: usize, score: usize, frame: usize, quick: bool) -> RensaResult {
         RensaResult {
-            chains: chains,
+            chain: chain,
             score: score,
-            frames: frames,
+            frame: frame,
             quick: quick
         }
     }

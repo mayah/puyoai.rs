@@ -548,9 +548,9 @@ mod tests {
         for testcase in simulation_testcases {
             let mut bf = testcase.field.clone();
             let rensa_result = bf.simulate();
-            assert_eq!(testcase.chain, rensa_result.chains);
+            assert_eq!(testcase.chain, rensa_result.chain);
             assert_eq!(testcase.score, rensa_result.score);
-            assert_eq!(testcase.frame, rensa_result.frames);
+            assert_eq!(testcase.frame, rensa_result.frame);
             assert_eq!(testcase.quick, rensa_result.quick);
         }
     }

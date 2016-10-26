@@ -5,11 +5,11 @@ use rensa_result::RensaResult;
 fn run_plainfield_test(mut pf: PuyoPlainField, expected_result: &RensaResult) {
     let actual_result = pf.simulate();
 
-    assert_eq!(actual_result.chains, expected_result.chains);
+    assert_eq!(actual_result.chain, expected_result.chain);
     assert_eq!(actual_result.score, expected_result.score);
     // Check only frames is not zero.
-    if expected_result.frames > 0 {
-        assert_eq!(actual_result.frames, expected_result.frames);
+    if expected_result.frame > 0 {
+        assert_eq!(actual_result.frame, expected_result.frame);
     }
     assert_eq!(actual_result.quick, expected_result.quick);
 }
@@ -17,11 +17,11 @@ fn run_plainfield_test(mut pf: PuyoPlainField, expected_result: &RensaResult) {
 fn run_bitfield_test(mut bf: BitField, expected_result: &RensaResult) {
     let actual_result = bf.simulate();
 
-    assert_eq!(actual_result.chains, expected_result.chains);
+    assert_eq!(actual_result.chain, expected_result.chain);
     assert_eq!(actual_result.score, expected_result.score);
     // Check only frames is not zero.
-    if expected_result.frames > 0 {
-        assert_eq!(actual_result.frames, expected_result.frames);
+    if expected_result.frame > 0 {
+        assert_eq!(actual_result.frame, expected_result.frame);
     }
     assert_eq!(actual_result.quick, expected_result.quick);
 }
@@ -36,9 +36,9 @@ fn test_simulate_1rensa_quick() {
     let pf = PuyoPlainField::from_str("..RRRR");
 
     let expected_result = RensaResult {
-        chains: 1,
+        chain: 1,
         score: 40,
-        frames: frame::FRAMES_VANISH_ANIMATION,
+        frame: frame::FRAMES_VANISH_ANIMATION,
         quick: true,
     };
 
@@ -53,9 +53,9 @@ fn test_simulate_1rensa_nonquick_case1() {
     ));
 
     let expected_result = RensaResult {
-        chains: 1,
+        chain: 1,
         score: 40,
-        frames: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[1] + frame::FRAMES_GROUNDING,
+        frame: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[1] + frame::FRAMES_GROUNDING,
         quick: false,
     };
 
@@ -71,9 +71,9 @@ fn test_simulate_1rensa_nonquick_case2() {
     ));
 
     let expected_result = RensaResult {
-        chains: 1,
+        chain: 1,
         score: 40,
-        frames: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[2] + frame::FRAMES_GROUNDING,
+        frame: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[2] + frame::FRAMES_GROUNDING,
         quick: false,
     };
 
@@ -89,9 +89,9 @@ fn test_simulate_1rensa_nonquick_case3() {
     ));
 
     let expected_result = RensaResult {
-        chains: 1,
+        chain: 1,
         score: 40,
-        frames: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[2] + frame::FRAMES_GROUNDING,
+        frame: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[2] + frame::FRAMES_GROUNDING,
         quick: false,
     };
 
@@ -107,9 +107,9 @@ fn test_simulate_2rensa_quick() {
     ));
 
     let expected_result = RensaResult {
-        chains: 2,
+        chain: 2,
         score: 40 + 40 * 8,
-        frames: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[2] + frame::FRAMES_GROUNDING +
+        frame: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[2] + frame::FRAMES_GROUNDING +
             frame::FRAMES_VANISH_ANIMATION,
         quick: true,
     };
@@ -126,9 +126,9 @@ fn test_simulate_2rensa_nonquick_case1() {
     ));
 
     let expected_result = RensaResult {
-        chains: 2,
+        chain: 2,
         score: 40 + 40 * 8,
-        frames: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[2] + frame::FRAMES_GROUNDING +
+        frame: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[2] + frame::FRAMES_GROUNDING +
             frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[1] + frame::FRAMES_GROUNDING,
         quick: false,
     };
@@ -144,9 +144,9 @@ fn test_simulate_2rensa_nonquick_case2() {
         "RRRRBB"));
 
     let expected_result = RensaResult {
-        chains: 2,
+        chain: 2,
         score: 700,
-        frames: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[1] + frame::FRAMES_GROUNDING +
+        frame: frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[1] + frame::FRAMES_GROUNDING +
             frame::FRAMES_VANISH_ANIMATION + frame::FRAMES_TO_DROP_FAST[1] + frame::FRAMES_GROUNDING,
         quick: false
     };
@@ -172,9 +172,9 @@ fn test_simulate_19rensa_case1() {
         "RBGBGG"));
 
     let expected_result = RensaResult {
-        chains: 19,
+        chain: 19,
         score: 175080,
-        frames: 0,
+        frame: 0,
         quick: true,
     };
 
