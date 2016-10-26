@@ -1,4 +1,4 @@
-use field::PuyoPlainField;
+use field::{PuyoPlainField, RealPlainField};
 use frame;
 use rensa_result::RensaResult;
 
@@ -6,6 +6,18 @@ use rensa_result::RensaResult;
 use field::BitField;
 
 fn run_puyoplainfield_test(mut pf: PuyoPlainField, expected_result: &RensaResult) {
+    let actual_result = pf.simulate();
+
+    assert_eq!(actual_result.chain, expected_result.chain);
+    assert_eq!(actual_result.score, expected_result.score);
+    // Check only frames is not zero.
+    if expected_result.frame > 0 {
+        assert_eq!(actual_result.frame, expected_result.frame);
+    }
+    assert_eq!(actual_result.quick, expected_result.quick);
+}
+
+fn run_realplainfield_test(mut pf: RealPlainField, expected_result: &RensaResult) {
     let actual_result = pf.simulate();
 
     assert_eq!(actual_result.chain, expected_result.chain);
@@ -33,12 +45,14 @@ fn run_bitfield_test(mut bf: BitField, expected_result: &RensaResult) {
 #[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
 fn run_test(src: &str, expected_result: RensaResult) {
     run_puyoplainfield_test(PuyoPlainField::from_str(src), &expected_result);
+    run_realplainfield_test(RealPlainField::from_str(src), &expected_result);
     run_bitfield_test(BitField::from_str(src), &expected_result);
 }
 
 #[cfg(not(all(target_feature = "avx2", target_feature = "bmi2")))]
 fn run_test(src: &str, expected_result: RensaResult) {
     run_puyoplainfield_test(PuyoPlainField::from_str(src), &expected_result);
+    run_realplainfield_test(RealPlainField::from_str(src), &expected_result);
 }
 
 #[test]
