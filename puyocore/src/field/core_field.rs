@@ -1,5 +1,5 @@
 use color::PuyoColor;
-use field::{self, BitField};
+use field::{self, BitField, Field, FieldHeight};
 
 pub struct CoreField {
     field: BitField,
@@ -43,9 +43,11 @@ impl CoreField {
     pub fn is_empty(&self, x: usize, y: usize) -> bool {
         self.field.is_empty(x, y)
     }
+}
 
-    pub fn height(&self, x: usize) -> i16 {
-        self.height[x]
+impl FieldHeight for CoreField {
+    fn height(&self, x: usize) -> usize {
+        self.height[x] as usize
     }
 }
 
@@ -55,6 +57,7 @@ mod tests {
 
     use color::PuyoColor;
     use field;
+    use field::FieldHeight;
 
     #[test]
     fn test_constructor() {

@@ -1,5 +1,5 @@
 use color::{Color, PuyoColor};
-use field::{self, PuyoPlainField};
+use field::{self, Field, PuyoPlainField};
 use field_bit::FieldBit;
 use field_bit_256::FieldBit256;
 use frame;
@@ -379,6 +379,12 @@ impl BitField {
     }
 }
 
+impl Field for BitField {
+    fn new() -> BitField {
+        BitField::new()
+    }
+}
+
 impl std::fmt::Display for BitField {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         // TODO(mayah): More sophisticated way?
@@ -397,8 +403,7 @@ impl std::fmt::Display for BitField {
 #[cfg(test)]
 mod tests {
     use super::BitField;
-    use color;
-    use color::PuyoColor;
+    use color::{self, PuyoColor};
     use field;
     use field_bit::FieldBit;
     use frame;
