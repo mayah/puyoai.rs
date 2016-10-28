@@ -1,7 +1,35 @@
+#[derive(Clone, Debug)]
 pub struct Decision {
     x: usize,
     r: usize,
 }
+
+const ALL_VALID_DECISIONS: &'static [Decision] = &[
+    Decision { x: 1, r: 0 },
+    Decision { x: 1, r: 1 },
+    Decision { x: 1, r: 2 },
+    // Decision { x: 1, r: 3 },
+    Decision { x: 2, r: 0 },
+    Decision { x: 2, r: 1 },
+    Decision { x: 2, r: 2 },
+    Decision { x: 2, r: 3 },
+    Decision { x: 3, r: 0 },
+    Decision { x: 3, r: 1 },
+    Decision { x: 3, r: 2 },
+    Decision { x: 3, r: 3 },
+    Decision { x: 4, r: 0 },
+    Decision { x: 4, r: 1 },
+    Decision { x: 4, r: 2 },
+    Decision { x: 4, r: 3 },
+    Decision { x: 5, r: 0 },
+    Decision { x: 5, r: 1 },
+    Decision { x: 5, r: 2 },
+    Decision { x: 5, r: 3 },
+    Decision { x: 6, r: 0 },
+    // Decision { x: 6, r: 1 },
+    Decision { x: 6, r: 2 },
+    Decision { x: 6, r: 3 },
+];
 
 impl Decision {
     pub fn new(x: usize, r: usize) -> Decision {
@@ -9,6 +37,10 @@ impl Decision {
             x: x,
             r: r,
         }
+    }
+
+    pub fn all_valid_decisions() -> &'static [Decision] {
+        ALL_VALID_DECISIONS
     }
 
     pub fn axis_x(&self) -> usize {
@@ -47,6 +79,11 @@ impl Decision {
 #[cfg(test)]
 mod tests {
     use decision::Decision;
+
+    #[test]
+    fn test_all_valid_decisions() {
+        assert_eq!(22, Decision::all_valid_decisions().len());
+    }
 
     #[test]
     fn test_xr() {
