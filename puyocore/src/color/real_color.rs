@@ -13,6 +13,17 @@ pub enum RealColor {
     PURPLE = 7,
 }
 
+const ALL_REAL_COLORS: &'static [RealColor] = &[
+    RealColor::EMPTY, RealColor::WALL, RealColor::OJAMA,
+    RealColor::RED, RealColor::BLUE, RealColor::YELLOW,
+    RealColor::GREEN, RealColor::PURPLE,
+];
+
+const ALL_NORMAL_REAL_COLORS: &'static [RealColor] = &[
+    RealColor::RED, RealColor::BLUE, RealColor::YELLOW,
+    RealColor::GREEN, RealColor::PURPLE,
+];
+
 impl RealColor {
     pub fn to_string(&self) -> &'static str {
         match *self {
@@ -54,6 +65,14 @@ impl Color<RealColor> for RealColor {
 
     fn wall_color() -> RealColor {
         RealColor::WALL
+    }
+
+    fn all_colors() -> &'static [RealColor] {
+        ALL_REAL_COLORS
+    }
+
+    fn all_normal_colors() -> &'static [RealColor] {
+        ALL_NORMAL_REAL_COLORS
     }
 
     fn as_usize(&self) -> usize {

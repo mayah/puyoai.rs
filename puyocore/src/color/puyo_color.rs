@@ -13,6 +13,15 @@ pub enum PuyoColor {
     GREEN  = 7
 }
 
+const ALL_PUYO_COLORS: &'static [PuyoColor] = &[
+    PuyoColor::EMPTY, PuyoColor::OJAMA, PuyoColor::WALL, PuyoColor::IRON,
+    PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN,
+];
+
+const ALL_NORMAL_PUYO_COLORS: &'static [PuyoColor] = &[
+    PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN,
+];
+
 impl PuyoColor {
     pub fn to_string(&self) -> &'static str {
         match *self {
@@ -53,6 +62,14 @@ impl Color<PuyoColor> for PuyoColor {
 
     fn wall_color() -> PuyoColor {
         PuyoColor::WALL
+    }
+
+    fn all_normal_colors() -> &'static [PuyoColor] {
+        ALL_NORMAL_PUYO_COLORS
+    }
+
+    fn all_colors() -> &'static [PuyoColor] {
+        ALL_PUYO_COLORS
     }
 
     fn as_usize(&self) -> usize {
@@ -122,15 +139,6 @@ impl std::fmt::Display for PuyoColor {
         write!(f, "{}", self.to_char())
     }
 }
-
-pub const ALL_PUYO_COLORS: [PuyoColor; 8] = [
-    PuyoColor::EMPTY, PuyoColor::OJAMA, PuyoColor::WALL, PuyoColor::IRON,
-    PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN,
-];
-
-pub const NORMAL_PUYO_COLORS: [PuyoColor; 4] = [
-    PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN,
-];
 
 #[cfg(test)]
 mod tests {

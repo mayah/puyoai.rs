@@ -4,6 +4,9 @@ pub trait Color<T> : Clone + Copy + PartialEq<T> {
     fn ojama_color() -> T;
     fn wall_color() -> T;
 
+    fn all_colors() -> &'static [T];
+    fn all_normal_colors() -> &'static [T];
+
     fn as_usize(&self) -> usize;
     fn to_char(&self) -> char;
     fn is_normal_color(&self) -> bool;
