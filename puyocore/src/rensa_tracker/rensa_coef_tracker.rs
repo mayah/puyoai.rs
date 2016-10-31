@@ -1,5 +1,6 @@
 use field_bit::FieldBit;
 use rensa_tracker::RensaTracker;
+use score;
 
 pub struct RensaCoefTracker {
     pub num_erased: [usize; 20],
@@ -8,12 +9,18 @@ pub struct RensaCoefTracker {
 }
 
 impl RensaCoefTracker {
-    fn new() -> RensaCoefTracker {
+    pub fn new() -> RensaCoefTracker {
         RensaCoefTracker {
             num_erased: [0; 20],
             long_bonus_coef: [0; 20],
             color_bonus_coef: [0; 20],
         }
+    }
+
+    pub fn coef(&self, nth_chain: usize) -> usize {
+        score::calculate_rensa_bonus_coef(score::chain_bonus(nth_chain),
+                                          self.long_bonus_coef[nth_chain],
+                                          self.color_bonus_coef[nth_chain])
     }
 }
 
@@ -30,6 +37,7 @@ impl RensaTracker for RensaCoefTracker {
 #[cfg(test)]
 mod tests {
     use super::RensaCoefTracker;
+    use field::BitField;
     use rensa_tracker::RensaTracker;
 
     #[test]
@@ -41,5 +49,30 @@ mod tests {
 
         assert_eq!(4, tracker.num_erased[3]);
         assert_eq!(0, tracker.num_erased[4]);
+    }
+
+    #[test]
+    fn test_simulate() {
+        let mut bf = BitField::from_str(concat!(
+            "R...RR",
+            "RGBRYR",
+            "RRGBBY",
+            "GGBYYR"));
+        let mut tracker = RensaCoefTracker::new();
+        let rensa_result = bf.simulate_with_tracker(&mut tracker);
+
+        assert_eq!(5, rensa_result.chain);
+
+        assert_eq!(4, tracker.num_erased[1]);
+        assert_eq!(4, tracker.num_erased[2]);
+        assert_eq!(4, tracker.num_erased[3]);
+        assert_eq!(4, tracker.num_erased[4]);
+        assert_eq!(5, tracker.num_erased[5]);
+
+        assert_eq!(1, tracker.coef(1));
+        assert_eq!(8, tracker.coef(2));
+        assert_eq!(16, tracker.coef(3));
+        assert_eq!(32, tracker.coef(4));
+        assert_eq!(64 + 2, tracker.coef(5));
     }
 }
