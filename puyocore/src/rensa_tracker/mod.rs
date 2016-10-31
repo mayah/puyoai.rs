@@ -1,5 +1,7 @@
 use field_bit::FieldBit;
 
+pub mod rensa_coef_tracker;
+
 pub trait RensaTracker {
     fn track_coef(&mut self, nth_chain: usize, num_erased_puyos: usize, long_bonus_coef: usize, color_bonus_coef: usize);
     fn track_vanish(&mut self, nth_chain: usize, vanished: &FieldBit, ojama_vanished: &FieldBit);
