@@ -10,11 +10,11 @@ use rensa_result::RensaResult;
 use score;
 
 #[derive(Clone)]
-pub struct PlainField<C: Color<C>> {
+pub struct PlainField<C: Color> {
     field: [[C; field::MAP_HEIGHT]; field::MAP_WIDTH],
 }
 
-impl<C: Color<C>> PlainField<C> {
+impl<C: Color> PlainField<C> {
     pub fn new() -> PlainField<C> {
         let w = C::wall_color();
         let e = C::empty_color();
@@ -410,7 +410,7 @@ impl<C: Color<C>> PlainField<C> {
     }
 }
 
-impl<C> PartialEq<PlainField<C>> for PlainField<C> where C: Color<C> {
+impl<C: Color> PartialEq<PlainField<C>> for PlainField<C> {
     fn eq(&self, other: &PlainField<C>) -> bool {
         // TODO(mayah): Would be good memory comparison.
         for x in 0..8 {
@@ -425,7 +425,7 @@ impl<C> PartialEq<PlainField<C>> for PlainField<C> where C: Color<C> {
     }
 }
 
-impl<C> fmt::Debug for PlainField<C> where C: Color<C> {
+impl<C: Color> fmt::Debug for PlainField<C> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut s = String::new();
 

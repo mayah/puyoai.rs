@@ -37,7 +37,7 @@ impl PuyoColor {
     }
 }
 
-impl Color<PuyoColor> for PuyoColor {
+impl Color for PuyoColor {
     fn from_byte(c: u8) -> PuyoColor {
         match c {
             b' ' | b'.' => PuyoColor::EMPTY,

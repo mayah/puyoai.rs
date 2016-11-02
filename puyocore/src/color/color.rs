@@ -1,11 +1,11 @@
-pub trait Color<T> : Clone + Copy + PartialEq<T> {
-    fn from_byte(b: u8) -> T;
-    fn empty_color() -> T;
-    fn ojama_color() -> T;
-    fn wall_color() -> T;
+pub trait Color : Clone + Copy + PartialEq<Self> {
+    fn from_byte(b: u8) -> Self;
+    fn empty_color() -> Self;
+    fn ojama_color() -> Self;
+    fn wall_color() -> Self;
 
-    fn all_colors() -> &'static [T];
-    fn all_normal_colors() -> &'static [T];
+    fn all_colors() -> &'static [Self];
+    fn all_normal_colors() -> &'static [Self];
 
     fn as_usize(&self) -> usize;
     fn to_char(&self) -> char;

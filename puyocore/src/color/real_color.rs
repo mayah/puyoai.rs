@@ -39,7 +39,7 @@ impl RealColor {
     }
 }
 
-impl Color<RealColor> for RealColor {
+impl Color for RealColor {
     fn from_byte(c: u8) -> RealColor {
         match c {
             b' ' | b'.' => RealColor::EMPTY,
