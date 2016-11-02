@@ -6,6 +6,7 @@ extern crate rand;
 extern crate x86intrin;
 
 pub mod color;
+pub mod control;
 pub mod decision;
 pub mod field;
 mod field_bit;
