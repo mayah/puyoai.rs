@@ -1,24 +1,24 @@
-use color::PuyoColor;
+use color::Color;
 
 #[derive(Debug, PartialEq)]
-pub struct Kumipuyo {
-    pub axis: PuyoColor,
-    pub child: PuyoColor,
+pub struct Kumipuyo<C: Color> {
+    pub axis: C,
+    pub child: C,
 }
 
-impl Kumipuyo {
-    pub fn new(axis: PuyoColor, child: PuyoColor) -> Kumipuyo {
+impl<C: Color> Kumipuyo<C> {
+    pub fn new(axis: C, child: C) -> Kumipuyo<C> {
         Kumipuyo {
             axis: axis,
             child: child,
         }
     }
 
-    pub fn axis(&self) -> PuyoColor {
+    pub fn axis(&self) -> C {
         self.axis
     }
 
-    pub fn child(&self) -> PuyoColor {
+    pub fn child(&self) -> C {
         self.child
     }
 }
@@ -30,7 +30,7 @@ mod tests {
 
     #[test]
     fn test_constructor() {
-        let kp = Kumipuyo::new(PuyoColor::RED, PuyoColor::BLUE);
+        let kp = Kumipuyo::<PuyoColor>::new(PuyoColor::RED, PuyoColor::BLUE);
         assert_eq!(PuyoColor::RED, kp.axis());
         assert_eq!(PuyoColor::BLUE, kp.child());
     }

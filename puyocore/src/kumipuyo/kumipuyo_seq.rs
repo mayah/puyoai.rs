@@ -1,79 +1,52 @@
-use color::PuyoColor;
+use color::{Color, PuyoColor};
 use kumipuyo::Kumipuyo;
 use rand::{thread_rng, Rng};
 use std::vec::Vec;
 
-pub struct KumipuyoSeq {
-    seq: Vec<Kumipuyo>,
+pub fn generate_random_puyocolor_sequence(size: usize) -> Vec<Kumipuyo<PuyoColor>> {
+    let mut rng = thread_rng();
+    let mut vs = Vec::new();
+    for _ in 0 .. size {
+        let axis = rng.choose(PuyoColor::all_normal_colors()).unwrap();
+        let child = rng.choose(PuyoColor::all_normal_colors()).unwrap();
+        vs.push(Kumipuyo::new(*axis, *child))
+    }
+
+    vs
 }
 
-impl KumipuyoSeq {
-    pub fn new(seq: Vec<Kumipuyo>) -> KumipuyoSeq {
-        KumipuyoSeq {
-            seq: seq
+pub fn generate_ac_puyo2_sequence() -> Vec<Kumipuyo<PuyoColor>> {
+    let mut vs: Vec<PuyoColor> = Vec::new();
+    for c in &[PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN] {
+        for _ in 0 .. 64 {
+            vs.push(*c)
         }
     }
 
-    pub fn empty() -> KumipuyoSeq {
-        KumipuyoSeq::new(Vec::new())
+    let mut rng = thread_rng();
+    rng.shuffle(&mut vs[0..64 * 3]);
+    rng.shuffle(&mut vs[6..64 * 4]);
+
+    let mut ks: Vec<Kumipuyo<PuyoColor>> = Vec::new();
+    for i in 0 .. 128 {
+        let axis = vs[2 * i];
+        let child = vs[2 * i + 1];
+        ks.push(Kumipuyo::new(axis, child));
     }
 
-    pub fn generate_random(size: usize) -> KumipuyoSeq {
-        let normal_colors = [PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN];
-
-        let mut rng = thread_rng();
-        let mut vs = Vec::new();
-        for _ in 0 .. size {
-            let axis = rng.choose(&normal_colors).unwrap();
-            let child = rng.choose(&normal_colors).unwrap();
-            vs.push(Kumipuyo::new(*axis, *child))
-        }
-
-        KumipuyoSeq::new(vs)
-    }
-
-    pub fn generate_ac_puyo2() -> KumipuyoSeq {
-        let mut vs: Vec<PuyoColor> = Vec::new();
-        for c in &[PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN] {
-            for _ in 0 .. 64 {
-                vs.push(*c)
-            }
-        }
-
-        let mut rng = thread_rng();
-        rng.shuffle(&mut vs[0..64 * 3]);
-        rng.shuffle(&mut vs[6..64 * 4]);
-
-        let mut ks: Vec<Kumipuyo> = Vec::new();
-        for i in 0 .. 128 {
-            let axis = vs[2 * i];
-            let child = vs[2 * i + 1];
-            ks.push(Kumipuyo::new(axis, child));
-        }
-
-        KumipuyoSeq::new(ks)
-    }
-
-    pub fn len(&self) -> usize {
-        self.seq.len()
-    }
-
-    pub fn as_slice(&self) -> &[Kumipuyo] {
-        self.seq.as_slice()
-    }
+    ks
 }
 
 #[cfg(test)]
 mod tests {
-    use super::KumipuyoSeq;
     use color::{Color, PuyoColor};
 
     #[test]
     fn test_generate_random() {
-        let seq = KumipuyoSeq::generate_random(20);
+        let seq = super::generate_random_puyocolor_sequence(20);
 
         assert_eq!(seq.len(), 20);
-        for c in seq.seq {
+        for c in seq {
             assert!(c.axis().is_normal_color());
             assert!(c.child().is_normal_color());
         }
@@ -81,11 +54,11 @@ mod tests {
 
     #[test]
     fn test_generate_ac_puyo2() {
-        let seq = KumipuyoSeq::generate_ac_puyo2();
+        let seq = super::generate_ac_puyo2_sequence();
         assert_eq!(seq.len(), 128);
 
         for i in 0 .. 128 {
-            let ref k = seq.seq[i];
+            let ref k = seq[i];
 
             assert!(k.axis().is_normal_color());
             assert!(k.child().is_normal_color());
