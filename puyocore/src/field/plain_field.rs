@@ -2,7 +2,7 @@ use std::cmp;
 use std::fmt;
 
 use color::{Color, PuyoColor, RealColor};
-use field::{self, FieldIsEmpty};
+use field::{self, Field, FieldIsEmpty};
 use field_checker::FieldChecker;
 use frame;
 use position::Position;
@@ -420,6 +420,16 @@ impl<C: Color> PlainField<C> {
             }
         }
         height[7] = 0;
+    }
+}
+
+impl<C: Color> Field for PlainField<C> {
+    fn new() -> PlainField<C> {
+        PlainField::<C>::new()
+    }
+
+    fn calculate_height(&self, height: &mut [u16]) {
+        PlainField::<C>::calculate_height(self, height)
     }
 }
 

@@ -1,5 +1,8 @@
 pub trait Field {
     fn new() -> Self;
+
+    // Calculates height and sets height to `height`.
+    fn calculate_height(&self, height: &mut [u16]);
 }
 
 /// FieldHeight trait provides height() method
