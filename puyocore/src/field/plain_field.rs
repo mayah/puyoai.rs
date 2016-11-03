@@ -408,6 +408,19 @@ impl<C: Color> PlainField<C> {
 
         RensaResult::new(chains - 1, score, frames, quick)
     }
+
+    /// Calculates field height and set the height to `height`.
+    pub fn calculate_height(&self, height: &mut [u16]) {
+        height[0] = 0;
+        for x in 1..(field::WIDTH + 1) {
+            for y in 1..14 {
+                if !self.is_empty(x, y) {
+                    height[x] = y as u16;
+                }
+            }
+        }
+        height[7] = 0;
+    }
 }
 
 impl<C: Color> PartialEq<PlainField<C>> for PlainField<C> {
@@ -628,5 +641,35 @@ mod tests {
             assert_eq!(0, pf.count_connected_puyos(x, 13));
             assert_eq!(0, pf.count_connected_puyos_max4(x, 13));
         }
+    }
+
+    #[test]
+    fn test_calculate_height() {
+        let pf = PuyoPlainField::from_str(concat!(
+            ".....O", // 14
+            "....OO", // 13
+            "...OOO", // 12
+            "..OOOO",
+            "..OOOO",
+            "..OOOO",
+            "..OOOO", // 8
+            "..OOOO",
+            "..OOOO",
+            "..OOOO",
+            "..OOOO", // 4
+            "..OOOO",
+            "..OOOO",
+            ".OOOOO"));
+        let mut height = [0u16; 8];
+        pf.calculate_height(&mut height);
+
+        assert_eq!(0, height[0]);
+        assert_eq!(0, height[1]);
+        assert_eq!(1, height[2]);
+        assert_eq!(11, height[3]);
+        assert_eq!(12, height[4]);
+        assert_eq!(13, height[5]);
+        assert_eq!(13, height[6]);  // Not 14, but 13.
+        assert_eq!(0, height[7]);
     }
 }
