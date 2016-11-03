@@ -7,12 +7,6 @@ pub struct FieldBit256 {
     m: m256i,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum LowHigh {
-    LOW,
-    HIGH,
-}
-
 impl FieldBit256 {
     pub fn new(m: m256i) -> FieldBit256 {
         FieldBit256 {
@@ -37,15 +31,12 @@ impl FieldBit256 {
         }
     }
 
-    pub fn get(&self, lowhigh: LowHigh, x: usize, y: usize) -> bool {
-        debug_assert!(FieldBit256::check_in_range(x, y));
-        mm256_testz_si256(FieldBit256::onebit(lowhigh, x, y), self.m) == 0
-    }
-
+    #[allow(dead_code)]
     pub fn get_low(&self, x: usize, y: usize) -> bool {
         self.low().get(x, y)
     }
 
+    #[allow(dead_code)]
     pub fn get_high(&self, x: usize, y: usize) -> bool {
         self.high().get(x, y)
     }
@@ -58,18 +49,21 @@ impl FieldBit256 {
         FieldBit::new(mm256_extracti128_si256(self.m, 1))
     }
 
+    #[allow(dead_code)]
     pub fn set_low(&mut self, x: usize, y: usize) {
-        self.m = self.m | FieldBit256::onebit(LowHigh::LOW, x, y)
+        self.m = self.m | FieldBit256::onebit_low(x, y)
     }
 
+    #[allow(dead_code)]
     pub fn set_high(&mut self, x: usize, y: usize) {
-        self.m = self.m | FieldBit256::onebit(LowHigh::HIGH, x, y)
+        self.m = self.m | FieldBit256::onebit_high(x, y)
     }
 
     pub fn set_all(&mut self, fb: FieldBit256) {
         self.m = self.m | fb.m
     }
 
+    #[allow(dead_code)]
     pub fn expand(&self, mask: FieldBit256) -> FieldBit256 {
         let mut seed = self.m;
 
@@ -133,25 +127,27 @@ impl FieldBit256 {
         x < 8 && y < 16
     }
 
-    fn onebit(lowhigh: LowHigh, x: usize, y: usize) -> m256i {
+    fn onebit_low(x: usize, y: usize) -> m256i {
         debug_assert!(FieldBit256::check_in_range(x, y));
-
-        // TODO(mayah): Maybe we have more good solution.
 
         let shift = ((x << 4) | y) & 0x3F;
         let zero = mm256_setzero_si256();
-        if lowhigh == LowHigh::LOW {
-            if x < 4 {
-                return mm256_insert_epi64(zero, 1 << shift, 0)
-            } else {
-                return mm256_insert_epi64(zero, 1 << shift, 1)
-            }
+        if x < 4 {
+            return mm256_insert_epi64(zero, 1 << shift, 0)
         } else {
-            if x < 4 {
-                return mm256_insert_epi64(zero, 1 << shift, 2)
-            } else {
-                return mm256_insert_epi64(zero, 1 << shift, 3)
-            }
+            return mm256_insert_epi64(zero, 1 << shift, 1)
+        }
+    }
+
+    fn onebit_high(x: usize, y: usize) -> m256i {
+        debug_assert!(FieldBit256::check_in_range(x, y));
+
+        let shift = ((x << 4) | y) & 0x3F;
+        let zero = mm256_setzero_si256();
+        if x < 4 {
+            return mm256_insert_epi64(zero, 1 << shift, 2)
+        } else {
+            return mm256_insert_epi64(zero, 1 << shift, 3)
         }
     }
 }
@@ -184,8 +180,8 @@ mod tests {
 
         for x in 0 .. 8 {
             for y in 0 .. 16 {
-                assert!(!fb256.get(LowHigh::LOW, x, y));
-                assert!(!fb256.get(LowHigh::HIGH, x, y));
+                assert!(!fb256.get_low(x, y));
+                assert!(!fb256.get_high(x, y));
             }
         }
     }
@@ -200,15 +196,15 @@ mod tests {
         high.set(5, 9);
 
         let fb256 = FieldBit256::from_low_high(low, high);
-        assert!(fb256.get(LowHigh::LOW, 1, 3));
-        assert!(fb256.get(LowHigh::LOW, 4, 8));
-        assert!(fb256.get(LowHigh::HIGH, 2, 4));
-        assert!(fb256.get(LowHigh::HIGH, 5, 9));
+        assert!(fb256.get_low(1, 3));
+        assert!(fb256.get_low(4, 8));
+        assert!(fb256.get_high(2, 4));
+        assert!(fb256.get_high(5, 9));
 
-        assert!(!fb256.get(LowHigh::HIGH, 1, 3));
-        assert!(!fb256.get(LowHigh::HIGH, 4, 8));
-        assert!(!fb256.get(LowHigh::LOW, 2, 4));
-        assert!(!fb256.get(LowHigh::LOW, 5, 9));
+        assert!(!fb256.get_high(1, 3));
+        assert!(!fb256.get_high(4, 8));
+        assert!(!fb256.get_low(2, 4));
+        assert!(!fb256.get_low(5, 9));
 
         assert_eq!(low, fb256.low());
         assert_eq!(high, fb256.high());
