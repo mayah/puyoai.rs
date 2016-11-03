@@ -12,6 +12,14 @@ impl<F: Field> FieldWithHeight<F> {
             height: [0; 8],
         }
     }
+
+    pub fn field(&self) -> &F {
+        &self.field
+    }
+
+    pub fn field_mut(&mut self) -> &mut F {
+        &mut self.field
+    }
 }
 
 impl<F: Field> FieldHeight for FieldWithHeight<F> {
