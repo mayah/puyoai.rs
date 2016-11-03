@@ -1,5 +1,5 @@
 use color::{Color, PuyoColor};
-use field::{self, Field, PuyoPlainField};
+use field::{self, Field, FieldIsEmpty, PuyoPlainField};
 use field_bit::FieldBit;
 use field_bit_256::FieldBit256;
 use frame;
@@ -382,6 +382,12 @@ impl BitField {
 impl Field for BitField {
     fn new() -> BitField {
         BitField::new()
+    }
+}
+
+impl FieldIsEmpty for BitField {
+    fn is_empty(&self, x: usize, y: usize) -> bool {
+        BitField::is_empty(self, x, y)
     }
 }
 

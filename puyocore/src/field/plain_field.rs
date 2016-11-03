@@ -2,7 +2,7 @@ use std::cmp;
 use std::fmt;
 
 use color::{Color, PuyoColor, RealColor};
-use field;
+use field::{self, FieldIsEmpty};
 use field_checker::FieldChecker;
 use frame;
 use position::Position;
@@ -420,6 +420,12 @@ impl<C: Color> PlainField<C> {
             }
         }
         height[7] = 0;
+    }
+}
+
+impl<C: Color> FieldIsEmpty for PlainField<C> {
+    fn is_empty(&self, x: usize, y: usize) -> bool {
+        PlainField::<C>::is_empty(self, x, y)
     }
 }
 
