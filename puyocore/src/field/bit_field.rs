@@ -1,5 +1,5 @@
 use color::{Color, PuyoColor};
-use field::{self, Field, FieldIsEmpty, PuyoPlainField};
+use field::{self, FieldIsEmpty, PuyoPlainField};
 use field_bit::FieldBit;
 use field_bit_256::FieldBit256;
 use frame;
@@ -376,12 +376,6 @@ impl BitField {
         self.m[2] = FieldBit::new(d[2].as_m128i());
 
         tracker.track_drop(old_low_bits, old_high_bits, new_low_bits, new_high_bits);
-    }
-}
-
-impl Field for BitField {
-    fn new() -> BitField {
-        BitField::new()
     }
 }
 
