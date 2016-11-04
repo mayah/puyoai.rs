@@ -15,6 +15,7 @@ mod field_bit_256;
 pub mod field_checker;
 pub mod frame;
 pub mod kumipuyo;
+pub mod pattern;
 pub mod position;
 pub mod rensa_result;
 #[cfg(all(target_feature = "avx2", target_feature="bmi2"))]
