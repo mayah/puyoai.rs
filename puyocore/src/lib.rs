@@ -2,11 +2,13 @@
 #![feature(simd, simd_ffi, link_llvm_intrinsics)]
 #![feature(cfg_target_feature)]
 
+extern crate bit_set;
 extern crate rand;
 extern crate x86intrin;
 
 pub mod color;
 pub mod column_puyo;
+pub mod column_puyo_list;
 pub mod control;
 pub mod decision;
 pub mod field;
