@@ -4,6 +4,5 @@ version = "0.1.0"
 authors = ["mayah"]
 
 [dependencies]
-bit-set = "^0.4"
 rand = "^0.3.14"
 x86intrin = { git = "https://github.com/mayah/x86intrin.git" }
