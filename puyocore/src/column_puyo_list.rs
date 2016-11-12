@@ -1,6 +1,5 @@
 use color::PuyoColor;
 use small_int_set::SmallIntSet;
-use std;
 
 const MAX_SIZE: usize = 8;
 
