@@ -1,11 +1,12 @@
 use color::PuyoColor;
 use small_int_set::SmallIntSet;
+use std;
 
 const MAX_SIZE: usize = 8;
 
 pub struct ColumnPuyoList {
     size: [usize; 6],
-    puyo: [[PuyoColor; 6]; MAX_SIZE],
+    puyo: [[PuyoColor; MAX_SIZE]; 6],
     place_holders: [SmallIntSet; 6],
 }
 
@@ -13,7 +14,7 @@ impl ColumnPuyoList {
     pub fn new() -> ColumnPuyoList {
         ColumnPuyoList {
             size: [0; 6],
-            puyo: [[PuyoColor::EMPTY; 6]; MAX_SIZE],
+            puyo: [[PuyoColor::EMPTY; MAX_SIZE]; 6],
             place_holders: [SmallIntSet::new(); 6],
         }
     }
@@ -41,6 +42,11 @@ impl ColumnPuyoList {
         } else {
             Some(self.puyo[x - 1][self.size_on(x) - 1])
         }
+    }
+
+    pub fn get(&self, x: usize, i: usize) -> PuyoColor {
+        debug_assert!(i < self.size_on(x));
+        self.puyo[x - 1][i]
     }
 
     pub fn has_place_holder(&self) -> bool {
@@ -96,6 +102,52 @@ impl ColumnPuyoList {
         }
         self.size[x - 1] -= 1;
     }
+
+    pub fn merge(&mut self, cpl: &ColumnPuyoList) -> bool {
+        for i in 0..6 {
+            if cpl.size[i] >= self.place_holders[i].size() && MAX_SIZE < self.size[i] + (cpl.size[i] - self.place_holders[i].size()) {
+                return false;
+            }
+        }
+
+        for i in 0..6 {
+            if cpl.size[i] < self.place_holders[i].size() {
+                let discard = self.place_holders[i].size() - cpl.size[i];
+                for _ in 0..discard {
+                    self.place_holders[i].remove_smallest();
+                }
+                for j in 0..cpl.size[i] {
+                    let k = self.place_holders[i].smallest();
+                    self.place_holders[i].remove_smallest();
+                    self.puyo[i][k] = cpl.puyo[i][j];
+                }
+            } else {
+                let mut j = 0;
+                while !self.place_holders[i].is_empty() {
+                    let k = self.place_holders[i].smallest();
+                    self.place_holders[i].remove_smallest();
+                    self.puyo[i][k] = cpl.puyo[i][j];
+                    j += 1;
+                }
+
+                while j < cpl.size[i] {
+                    self.puyo[i][self.size[i]] = cpl.puyo[i][j];
+                    self.size[i] += 1;
+                    j += 1;
+                }
+            }
+
+            let mut new_place_holder = SmallIntSet::new();
+            for j in 0..self.size[i] {
+                if ColumnPuyoList::is_place_holder(cpl.puyo[i][j]) {
+                    new_place_holder.set(j);
+                }
+            }
+            self.place_holders[i] = new_place_holder;
+        }
+
+        true
+    }
 }
 
 #[cfg(test)]
@@ -142,5 +194,99 @@ mod tests {
 
         cpl.remove_top(1);
         assert!(!cpl.has_place_holder());
+    }
+
+    #[test]
+    fn test_merge() {
+        let mut cpl = ColumnPuyoList::new();
+        let mut cpl1 = ColumnPuyoList::new();
+        assert!(cpl1.add_multi(3, PuyoColor::RED, 2));
+        let mut cpl2 = ColumnPuyoList::new();
+        assert!(cpl2.add_multi(3, PuyoColor::BLUE, 2));
+        let mut cpl3 = ColumnPuyoList::new();
+        assert!(cpl3.add_multi(3, PuyoColor::BLUE, 8));
+
+        assert!(cpl.merge(&cpl1));
+        assert!(cpl.merge(&cpl2));
+        assert_eq!(4, cpl.size());
+
+        assert!(!cpl.merge(&cpl3));
+        assert_eq!(4, cpl.size());
+    }
+
+    #[test]
+    fn test_merge_with_place_holders_1() {
+        let mut cpl1 = ColumnPuyoList::new();
+        assert!(cpl1.add(3, PuyoColor::IRON));
+        assert!(cpl1.add(3, PuyoColor::IRON));
+        assert!(cpl1.add(3, PuyoColor::IRON));
+        assert!(cpl1.add(3, PuyoColor::RED));
+        assert!(cpl1.add(3, PuyoColor::RED));
+        assert!(cpl1.add(3, PuyoColor::RED));
+
+        let mut cpl2 = ColumnPuyoList::new();
+        assert!(cpl2.add(3, PuyoColor::IRON));
+        assert!(cpl2.add(3, PuyoColor::IRON));
+        assert!(cpl2.add(3, PuyoColor::YELLOW));
+        assert!(cpl2.add(3, PuyoColor::YELLOW));
+
+        assert!(cpl1.merge(&cpl2));
+
+        assert_eq!(7, cpl1.size());
+        assert_eq!(7, cpl1.size_on(3));
+        assert_eq!(PuyoColor::IRON, cpl1.get(3, 0));
+        assert_eq!(PuyoColor::IRON, cpl1.get(3, 1));
+        assert_eq!(PuyoColor::YELLOW, cpl1.get(3, 2));
+        assert_eq!(PuyoColor::RED, cpl1.get(3, 3));
+        assert_eq!(PuyoColor::RED, cpl1.get(3, 4));
+        assert_eq!(PuyoColor::RED, cpl1.get(3, 5));
+        assert_eq!(PuyoColor::YELLOW, cpl1.get(3, 6));
+    }
+
+    #[test]
+    fn test_merge_with_place_holders_2() {
+        let mut cpl1 = ColumnPuyoList::new();
+        assert!(cpl1.add(3, PuyoColor::IRON));
+        assert!(cpl1.add(3, PuyoColor::IRON));
+        assert!(cpl1.add(3, PuyoColor::IRON));
+        assert!(cpl1.add(3, PuyoColor::RED));
+        assert!(cpl1.add(3, PuyoColor::RED));
+        assert!(cpl1.add(3, PuyoColor::RED));
+
+        let mut cpl2 = ColumnPuyoList::new();
+        assert!(cpl2.add(3, PuyoColor::YELLOW));
+        assert!(cpl2.add(3, PuyoColor::YELLOW));
+
+        assert!(cpl1.merge(&cpl2));
+
+        assert_eq!(6, cpl1.size());
+        assert_eq!(6, cpl1.size_on(3));
+        assert_eq!(PuyoColor::IRON, cpl1.get(3, 0));
+        assert_eq!(PuyoColor::YELLOW, cpl1.get(3, 1));
+        assert_eq!(PuyoColor::YELLOW, cpl1.get(3, 2));
+        assert_eq!(PuyoColor::RED, cpl1.get(3, 3));
+        assert_eq!(PuyoColor::RED, cpl1.get(3, 4));
+        assert_eq!(PuyoColor::RED, cpl1.get(3, 5));
+    }
+
+    #[test]
+    fn test_merge_with_place_holders_3() {
+        let mut cpl1 = ColumnPuyoList::new();
+        assert!(cpl1.add(3, PuyoColor::IRON));
+        assert!(cpl1.add(3, PuyoColor::IRON));
+        assert!(cpl1.add(3, PuyoColor::IRON));
+        assert!(cpl1.add(3, PuyoColor::RED));
+        assert!(cpl1.add(3, PuyoColor::RED));
+        assert!(cpl1.add(3, PuyoColor::RED));
+        assert!(cpl1.add(3, PuyoColor::RED));
+        assert!(cpl1.add(3, PuyoColor::RED));
+
+        let mut cpl2 = ColumnPuyoList::new();
+        assert!(cpl2.add(3, PuyoColor::YELLOW));
+        assert!(cpl2.add(3, PuyoColor::YELLOW));
+        assert!(cpl2.add(3, PuyoColor::YELLOW));
+        assert!(cpl2.add(3, PuyoColor::YELLOW));
+
+        assert!(!cpl1.merge(&cpl2));
     }
 }
