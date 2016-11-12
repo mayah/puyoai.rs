@@ -91,6 +91,11 @@ impl BitField {
         FieldBit::from_onebit(x, y).expand(&color_bits).popcount()
     }
 
+    /// Returns FieldBit where normal color bit is set.
+    pub fn normal_color_bits(&self) -> FieldBit {
+        self.m[2]
+    }
+
     pub fn bits(&self, c: PuyoColor) -> FieldBit {
         let r0 = self.m[0].as_m128i();
         let r1 = self.m[1].as_m128i();
@@ -493,6 +498,13 @@ mod tests {
                 assert_eq!(bf.is_normal_color(x, y), bf.is_normal_color(x, y));
             }
         }
+    }
+
+    #[test]
+    fn test_normal_color_bits() {
+        let bf = BitField::from_str("RGO&BY");
+        let fb = FieldBit::from_str("11..11");
+        assert_eq!(bf.normal_color_bits(), fb);
     }
 
     #[test]
