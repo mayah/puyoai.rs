@@ -22,25 +22,21 @@ impl ColumnPuyo {
         self.color
     }
 
+    /// Returns true if ColumnPuyo is valid. x should be 0 < x < 7.
+    ///
+    /// ```
+    /// use puyocore::color::PuyoColor;
+    /// use puyocore::column_puyo::ColumnPuyo;
+    /// let cp0 = ColumnPuyo::new(0, PuyoColor::RED);
+    /// let cp1 = ColumnPuyo::new(1, PuyoColor::RED);
+    /// let cp6 = ColumnPuyo::new(1, PuyoColor::RED);
+    /// let cp7 = ColumnPuyo::new(7, PuyoColor::RED);
+    /// assert!(!cp0.valid());
+    /// assert!(cp1.valid());
+    /// assert!(cp6.valid());
+    /// assert!(!cp7.valid());
+    /// ```
     pub fn valid(&self) -> bool {
         0 < self.x && self.x < 7
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use color::PuyoColor;
-
-    #[test]
-    fn test_is_valid() {
-        assert!(!ColumnPuyo::new(0, PuyoColor::EMPTY).valid());
-        assert!(ColumnPuyo::new(1, PuyoColor::EMPTY).valid());
-        assert!(ColumnPuyo::new(2, PuyoColor::EMPTY).valid());
-        assert!(ColumnPuyo::new(3, PuyoColor::EMPTY).valid());
-        assert!(ColumnPuyo::new(4, PuyoColor::EMPTY).valid());
-        assert!(ColumnPuyo::new(5, PuyoColor::EMPTY).valid());
-        assert!(ColumnPuyo::new(6, PuyoColor::EMPTY).valid());
-        assert!(!ColumnPuyo::new(7, PuyoColor::EMPTY).valid());
     }
 }
