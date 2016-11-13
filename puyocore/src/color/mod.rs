@@ -5,3 +5,5 @@ pub mod real_color;
 pub use self::color::Color;
 pub use self::puyo_color::PuyoColor;
 pub use self::real_color::RealColor;
+
+pub use self::puyo_color::NUM_PUYO_COLORS;

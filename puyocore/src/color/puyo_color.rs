@@ -13,6 +13,8 @@ pub enum PuyoColor {
     GREEN  = 7
 }
 
+pub const NUM_PUYO_COLORS: usize = 8;
+
 const ALL_PUYO_COLORS: &'static [PuyoColor] = &[
     PuyoColor::EMPTY, PuyoColor::OJAMA, PuyoColor::WALL, PuyoColor::IRON,
     PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN,
