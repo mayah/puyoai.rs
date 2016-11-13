@@ -263,6 +263,27 @@ impl FieldBit {
         }
     }
 
+    pub fn iterate_bit_position<F>(&self, mut callback: F) where F: FnMut(usize, usize) {
+        let mut low = self.m.as_u64x2().extract(0);
+        let mut high = self.m.as_u64x2().extract(1);
+
+        while low != 0 {
+            let bit = low.trailing_zeros();
+            let x = bit >> 4;
+            let y = bit & 0xF;
+            callback(x as usize, y as usize);
+            low = low & (low - 1);
+        }
+
+        while high != 0 {
+            let bit = high.trailing_zeros();
+            let x = 4 + (bit >> 4);
+            let y = bit & 0xF;
+            callback(x as usize, y as usize);
+            high = high & (high - 1);
+        }
+    }
+
     fn check_in_range(x: usize, y: usize) -> bool {
         x < 8 && y < 16
     }
@@ -533,5 +554,25 @@ mod tests {
 
         assert_eq!(expected_and, fb1 & fb2);
         assert_eq!(expected_or, fb1 | fb2);
+    }
+
+    #[test]
+    fn test_iterate_bit_position() {
+        let bf = FieldBit::from_str(concat!(
+            "...1..", // 6
+            ".1....", // 5
+            "......", // 4
+            "..1...", // 3
+            "...1..", // 2
+            "1.....", // 1
+        ));
+
+        let mut s = Vec::new();
+        bf.iterate_bit_position(|x, y| {
+            s.push((x, y));
+        });
+        s.sort();
+
+        assert_eq!(&[(1, 1), (2, 5), (3, 3), (4, 2), (4, 6)], s.as_slice());
     }
 }
