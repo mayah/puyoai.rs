@@ -43,6 +43,10 @@ impl CoreField {
     pub fn is_empty(&self, x: usize, y: usize) -> bool {
         self.field.is_empty(x, y)
     }
+
+    pub fn field(&self) -> &BitField {
+        &self.field
+    }
 }
 
 impl FieldHeight for CoreField {
