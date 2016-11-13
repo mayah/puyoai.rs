@@ -205,6 +205,39 @@ impl FieldBit {
         FieldBit { m: m }
     }
 
+    /// Returns bits where edge is expanded.
+    /// This might contain the original bits, so you'd like to take mask.
+    ///
+    /// ```text
+    /// ......      ..xx..    ..xx..
+    /// ..xx..  --> .x..x. or .xxxx.
+    /// ......      ..xx..    ..xx..
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use puyocore::field_bit::FieldBit;
+    /// let fb = FieldBit::from_str(concat!(
+    ///     "......",
+    ///     "..11..",
+    ///     "......"));
+    /// let expected = FieldBit::from_str(concat!(
+    ///     "..11..",
+    ///     ".1111.",
+    ///     "..11.."));
+    /// assert_eq!(expected, fb.expand_edge() | fb);
+    /// ```
+    pub fn expand_edge(&self) -> FieldBit {
+        let seed = self.m;
+        let m1 = mm_slli_epi16(seed, 1);
+        let m2 = mm_srli_epi16(seed, 1);
+        let m3 = mm_slli_si128(seed, 2);
+        let m4 = mm_srli_si128(seed, 2);
+
+        return FieldBit::new((m1 | m2) | (m3 | m4))
+    }
+
     pub fn iterate_bit_with_masking<F: FnMut(FieldBit) -> FieldBit>(&self, mut callback: F) {
         let zero = mm_setzero_si128();
         let down_ones = mm_cvtsi64_si128(-1 as i64);

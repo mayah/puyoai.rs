@@ -11,9 +11,9 @@ pub mod column_puyo_list;
 pub mod control;
 pub mod decision;
 pub mod field;
-mod field_bit;
+pub mod field_bit;
 #[cfg(all(target_feature = "avx2", target_feature="bmi2"))]
-mod field_bit_256;
+pub mod field_bit_256;
 pub mod field_checker;
 pub mod frame;
 pub mod kumipuyo;
