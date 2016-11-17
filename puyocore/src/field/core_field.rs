@@ -36,8 +36,16 @@ impl CoreField {
         self.field.color(x, y)
     }
 
+    pub fn height(&self, x: usize) -> usize {
+        self.height[x] as usize
+    }
+
     pub fn is_color(&self, x: usize, y: usize, c: PuyoColor) -> bool {
         self.field.is_color(x, y, c)
+    }
+
+    pub fn is_normal_color(&self, x: usize, y: usize) -> bool {
+        self.field.is_normal_color(x, y)
     }
 
     pub fn is_empty(&self, x: usize, y: usize) -> bool {
@@ -51,17 +59,15 @@ impl CoreField {
 
 impl FieldHeight for CoreField {
     fn height(&self, x: usize) -> usize {
-        self.height[x] as usize
+        CoreField::height(self, x)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::CoreField;
-
     use color::PuyoColor;
     use field;
-    use field::FieldHeight;
 
     #[test]
     fn test_constructor() {
