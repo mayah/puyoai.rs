@@ -1,6 +1,9 @@
 use color::PuyoColor;
+use column_puyo_list::ColumnPuyoList;
 use field::{self, BitField, FieldHeight};
+use std;
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct CoreField {
     field: BitField,
     height: [i16; 8],
@@ -66,7 +69,49 @@ impl CoreField {
 
     pub fn count_connected_max4_with_color(&self, x: usize, y: usize, c: PuyoColor) -> usize {
         self.field.count_connected_max4_with_color(x, y, c)
-    }    
+    }
+
+    pub fn drop_puyo_on_with_max_height(&mut self, x: usize, c: PuyoColor, max_height: usize) -> bool {
+        debug_assert!(c != PuyoColor::EMPTY);
+        debug_assert!(max_height <= 14);
+
+        if self.height(x) >= std::cmp::min(13, max_height) {
+            return false;
+        }
+
+        debug_assert!(self.color(x, self.height(x) + 1) == PuyoColor::EMPTY,
+                      "x={} max_height={}", x, max_height);
+
+        self.height[x] += 1;
+        self.field.set_color(x, self.height[x] as usize, c);
+
+        true
+    }
+
+    pub fn drop_column_puyo_list(&mut self, cpl: &ColumnPuyoList) -> bool {
+        self.drop_column_puyo_list_with_max_height(cpl, 13)
+    }
+
+    pub fn drop_column_puyo_list_with_max_height(&mut self, cpl: &ColumnPuyoList, max_height: usize) -> bool {
+        // check size
+        for x in 1..7 {
+            if self.height(x) + cpl.size_on(x) > max_height {
+                return false;
+            }
+        }
+
+        for x in 1..7 {
+            let s = cpl.size_on(x);
+            for i in 0..s {
+                self.height[x] += 1;
+                let c = cpl.get(x, i);
+                let h = self.height(x);
+                self.field.set_color(x, h, c);
+            }
+        }
+
+        true
+    }
 }
 
 impl FieldHeight for CoreField {
@@ -79,6 +124,7 @@ impl FieldHeight for CoreField {
 mod tests {
     use super::CoreField;
     use color::PuyoColor;
+    use column_puyo_list::ColumnPuyoList;
     use field;
 
     #[test]
@@ -119,5 +165,85 @@ mod tests {
         assert_eq!(1, cf.height(4));
         assert_eq!(0, cf.height(5));
         assert_eq!(0, cf.height(6));
+    }
+
+    #[test]
+    fn test_drop_puyo_on() {
+        let mut cf = CoreField::from_str(concat!(
+            ".....R", // 13
+            "OOOOOR", // 12
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 8
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 4
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO"));
+
+        assert!(cf.drop_puyo_on_with_max_height(3, PuyoColor::BLUE, 13));
+        assert!(cf.drop_puyo_on_with_max_height(4, PuyoColor::BLUE, 13));
+        assert!(!cf.drop_puyo_on_with_max_height(4, PuyoColor::BLUE, 13));
+        assert!(!cf.drop_puyo_on_with_max_height(6, PuyoColor::BLUE, 13));
+
+        let expected = CoreField::from_str(concat!(
+            "..BB.R", // 13
+            "OOOOOR", // 12
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 8
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 4
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO"));
+
+        assert_eq!(cf, expected);
+    }
+
+    #[test]
+    fn test_drop_column_puyo_list_on() {
+        let mut cf = CoreField::from_str(concat!(
+            ".....R", // 13
+            "OOOOOR", // 12
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 8
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 4
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO"));
+
+        let mut cpl = ColumnPuyoList::new();
+        assert!(cpl.add(3, PuyoColor::BLUE));
+        assert!(cpl.add(4, PuyoColor::BLUE));
+        assert!(cf.drop_column_puyo_list_with_max_height(&cpl, 13));
+
+        let expected = CoreField::from_str(concat!(
+            "..BB.R", // 13
+            "OOOOOR", // 12
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 8
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 4
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO"));
+
+        assert_eq!(cf, expected);
     }
 }
