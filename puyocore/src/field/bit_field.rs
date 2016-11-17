@@ -91,6 +91,21 @@ impl BitField {
         FieldBit::from_onebit(x, y).expand(&color_bits).popcount()
     }
 
+    pub fn count_connected_puyos_max4(&self, x: usize, y: usize) -> usize {
+        if y > field::HEIGHT {
+            return 0
+        }
+
+        let c = self.color(x, y);
+        let color_bits = self.bits(c).masked_field_12();
+
+        FieldBit::from_onebit(x, y)
+            .expand1(color_bits)
+            .expand1(color_bits)
+            .expand1(color_bits)
+            .popcount()
+    }
+
     /// Returns FieldBit where normal color bit is set.
     pub fn normal_color_bits(&self) -> FieldBit {
         self.m[2]
@@ -534,6 +549,34 @@ mod tests {
         assert_eq!(bf.count_connected_puyos(3, 2), 1);
         assert_eq!(bf.count_connected_puyos(6, 2), 1);
         assert_eq!(bf.count_connected_puyos(4, 2), 8);
+
+        assert_eq!(bf.count_connected_puyos_max4(1, 1), 3);
+        assert_eq!(bf.count_connected_puyos_max4(4, 1), 3);
+        assert_eq!(bf.count_connected_puyos_max4(1, 2), 1);
+        assert_eq!(bf.count_connected_puyos_max4(3, 2), 1);
+        assert_eq!(bf.count_connected_puyos_max4(6, 2), 1);
+        assert!(bf.count_connected_puyos_max4(4, 2) >= 4);
+    }
+
+    #[test]
+    fn test_count_connected_puyos_edge_case() {
+        let bf = BitField::from_str(concat!(
+            ".....R", // 13
+            "OOOOOR", // 12
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 8
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 4
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO"));
+
+        assert_eq!(bf.count_connected_puyos(6, 12), 1);
+        assert_eq!(bf.count_connected_puyos_max4(6, 12), 1);
     }
 
     #[test]
