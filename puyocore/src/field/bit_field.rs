@@ -106,6 +106,20 @@ impl BitField {
             .popcount()
     }
 
+    pub fn count_connected_max4_with_color(&self, x: usize, y: usize, c: PuyoColor) -> usize {
+        if y > field::HEIGHT {
+            return 0
+        }
+
+        let color_bits = self.bits(c).masked_field_12();
+
+        FieldBit::from_onebit(x, y)
+            .expand1(color_bits)
+            .expand1(color_bits)
+            .expand1(color_bits)
+            .popcount()
+    }
+
     /// Returns FieldBit where normal color bit is set.
     pub fn normal_color_bits(&self) -> FieldBit {
         self.m[2]
@@ -556,6 +570,13 @@ mod tests {
         assert_eq!(bf.count_connected_max4(3, 2), 1);
         assert_eq!(bf.count_connected_max4(6, 2), 1);
         assert!(bf.count_connected_max4(4, 2) >= 4);
+
+        assert_eq!(bf.count_connected_max4_with_color(1, 1, bf.color(1, 1)), 3);
+        assert_eq!(bf.count_connected_max4_with_color(4, 1, bf.color(4, 1)), 3);
+        assert_eq!(bf.count_connected_max4_with_color(1, 2, bf.color(1, 2)), 1);
+        assert_eq!(bf.count_connected_max4_with_color(3, 2, bf.color(3, 2)), 1);
+        assert_eq!(bf.count_connected_max4_with_color(6, 2, bf.color(6, 2)), 1);
+        assert!(bf.count_connected_max4_with_color(4, 2, bf.color(4, 2)) >= 4);
     }
 
     #[test]
@@ -577,6 +598,11 @@ mod tests {
 
         assert_eq!(bf.count_connected(6, 12), 1);
         assert_eq!(bf.count_connected_max4(6, 12), 1);
+        assert_eq!(bf.count_connected_max4_with_color(6, 12, bf.color(6, 12)), 1);
+
+        assert_eq!(bf.count_connected(6, 13), 0);
+        assert_eq!(bf.count_connected_max4(6, 13), 0);
+        assert_eq!(bf.count_connected_max4_with_color(6, 13, bf.color(6, 13)), 0);
     }
 
     #[test]
