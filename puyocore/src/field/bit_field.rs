@@ -81,7 +81,7 @@ impl BitField {
         }
     }
 
-    pub fn count_connected_puyos(&self, x: usize, y: usize) -> usize {
+    pub fn count_connected(&self, x: usize, y: usize) -> usize {
         if y > field::HEIGHT {
             return 0
         }
@@ -91,7 +91,7 @@ impl BitField {
         FieldBit::from_onebit(x, y).expand(&color_bits).popcount()
     }
 
-    pub fn count_connected_puyos_max4(&self, x: usize, y: usize) -> usize {
+    pub fn count_connected_max4(&self, x: usize, y: usize) -> usize {
         if y > field::HEIGHT {
             return 0
         }
@@ -537,25 +537,25 @@ mod tests {
     }
 
     #[test]
-    fn test_count_connected_puyos() {
+    fn test_count_connected() {
         let bf = BitField::from_str(concat!(
             "RRRRRR",
             "BYBRRY",
             "RRRBBB"));
 
-        assert_eq!(bf.count_connected_puyos(1, 1), 3);
-        assert_eq!(bf.count_connected_puyos(4, 1), 3);
-        assert_eq!(bf.count_connected_puyos(1, 2), 1);
-        assert_eq!(bf.count_connected_puyos(3, 2), 1);
-        assert_eq!(bf.count_connected_puyos(6, 2), 1);
-        assert_eq!(bf.count_connected_puyos(4, 2), 8);
+        assert_eq!(bf.count_connected(1, 1), 3);
+        assert_eq!(bf.count_connected(4, 1), 3);
+        assert_eq!(bf.count_connected(1, 2), 1);
+        assert_eq!(bf.count_connected(3, 2), 1);
+        assert_eq!(bf.count_connected(6, 2), 1);
+        assert_eq!(bf.count_connected(4, 2), 8);
 
-        assert_eq!(bf.count_connected_puyos_max4(1, 1), 3);
-        assert_eq!(bf.count_connected_puyos_max4(4, 1), 3);
-        assert_eq!(bf.count_connected_puyos_max4(1, 2), 1);
-        assert_eq!(bf.count_connected_puyos_max4(3, 2), 1);
-        assert_eq!(bf.count_connected_puyos_max4(6, 2), 1);
-        assert!(bf.count_connected_puyos_max4(4, 2) >= 4);
+        assert_eq!(bf.count_connected_max4(1, 1), 3);
+        assert_eq!(bf.count_connected_max4(4, 1), 3);
+        assert_eq!(bf.count_connected_max4(1, 2), 1);
+        assert_eq!(bf.count_connected_max4(3, 2), 1);
+        assert_eq!(bf.count_connected_max4(6, 2), 1);
+        assert!(bf.count_connected_max4(4, 2) >= 4);
     }
 
     #[test]
@@ -575,8 +575,8 @@ mod tests {
             "OOOOOO",
             "OOOOOO"));
 
-        assert_eq!(bf.count_connected_puyos(6, 12), 1);
-        assert_eq!(bf.count_connected_puyos_max4(6, 12), 1);
+        assert_eq!(bf.count_connected(6, 12), 1);
+        assert_eq!(bf.count_connected_max4(6, 12), 1);
     }
 
     #[test]
