@@ -55,6 +55,18 @@ impl CoreField {
     pub fn field(&self) -> &BitField {
         &self.field
     }
+
+    pub fn is_connected(&self, x: usize, y: usize) -> bool {
+        self.field.is_connected(x, y)
+    }
+
+    pub fn count_connected_max4(&self, x: usize, y: usize) -> usize {
+        self.field.count_connected_max4(x, y)
+    }
+
+    pub fn count_connected_max4_with_color(&self, x: usize, y: usize, c: PuyoColor) -> usize {
+        self.field.count_connected_max4_with_color(x, y, c)
+    }    
 }
 
 impl FieldHeight for CoreField {
