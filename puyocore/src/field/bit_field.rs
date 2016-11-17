@@ -132,6 +132,20 @@ impl BitField {
         FieldBit::new(v)
     }
 
+    pub fn is_connected(&self, x: usize, y: usize) -> bool {
+        self.is_connected_with_color(x, y, self.color(x, y))
+    }
+
+    pub fn is_connected_with_color(&self, x: usize, y: usize, c: PuyoColor) -> bool {
+        if y > field::HEIGHT {
+            return false;
+        }
+
+        let color_bits = self.bits(c).masked_field_12();
+        let single = FieldBit::from_onebit(x, y);
+        !single.expand_edge().mask(color_bits).not_mask(single).is_empty()
+    }
+
     pub fn simulate(&mut self) -> RensaResult {
         let mut tracker = RensaNonTracker::new();
         self.simulate_with_tracker(&mut tracker)
@@ -520,6 +534,44 @@ mod tests {
         assert_eq!(bf.count_connected_puyos(3, 2), 1);
         assert_eq!(bf.count_connected_puyos(6, 2), 1);
         assert_eq!(bf.count_connected_puyos(4, 2), 8);
+    }
+
+    #[test]
+    fn test_is_connected() {
+        let bf = BitField::from_str(concat!(
+            "B.B..Y",
+            "RRRBBB",
+        ));
+
+        assert!(bf.is_connected(1, 1));
+        assert!(bf.is_connected(2, 1));
+        assert!(bf.is_connected(3, 1));
+        assert!(bf.is_connected(4, 1));
+        assert!(bf.is_connected(5, 1));
+        assert!(bf.is_connected(6, 1));
+        assert!(!bf.is_connected(1, 2));
+        assert!(!bf.is_connected(3, 2));
+        assert!(!bf.is_connected(6, 2));
+    }
+
+    #[test]
+    fn test_is_connected_edge_case() {
+        let bf = BitField::from_str(concat!(
+            ".....R", // 13
+            "OOOOOR", // 12
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 8
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO", // 4
+            "OOOOOO",
+            "OOOOOO",
+            "OOOOOO"));
+
+        assert!(!bf.is_connected(6, 12));
     }
 
     #[test]

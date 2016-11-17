@@ -82,6 +82,14 @@ impl FieldBit {
         mm_testz_si128(self.m, self.m) != 0
     }
 
+    pub fn mask(&self, mask: FieldBit) -> FieldBit {
+        *self & mask
+    }
+
+    pub fn not_mask(&self, mask: FieldBit) -> FieldBit {
+        FieldBit::new(mm_andnot_si128(mask.m, self.m))
+    }
+
     pub fn andnot(&self, other: FieldBit) -> FieldBit {
         FieldBit::new(mm_andnot_si128(self.m, other.m))
     }
