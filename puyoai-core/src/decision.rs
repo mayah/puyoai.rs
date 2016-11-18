@@ -1,34 +1,46 @@
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialOrd, Ord, PartialEq)]
 pub struct Decision {
     x: usize,
     r: usize,
 }
 
 const ALL_VALID_DECISIONS: &'static [Decision] = &[
-    Decision { x: 1, r: 0 },
-    Decision { x: 1, r: 1 },
-    Decision { x: 1, r: 2 },
-    // Decision { x: 1, r: 3 },
-    Decision { x: 2, r: 0 },
-    Decision { x: 2, r: 1 },
-    Decision { x: 2, r: 2 },
     Decision { x: 2, r: 3 },
-    Decision { x: 3, r: 0 },
-    Decision { x: 3, r: 1 },
-    Decision { x: 3, r: 2 },
     Decision { x: 3, r: 3 },
-    Decision { x: 4, r: 0 },
+    Decision { x: 3, r: 1 },
     Decision { x: 4, r: 1 },
-    Decision { x: 4, r: 2 },
-    Decision { x: 4, r: 3 },
-    Decision { x: 5, r: 0 },
     Decision { x: 5, r: 1 },
+    Decision { x: 1, r: 2 },
+    Decision { x: 2, r: 2 },
+    Decision { x: 3, r: 2 },
+    Decision { x: 4, r: 2 },
     Decision { x: 5, r: 2 },
-    Decision { x: 5, r: 3 },
-    Decision { x: 6, r: 0 },
-    // Decision { x: 6, r: 1 },
     Decision { x: 6, r: 2 },
+    Decision { x: 1, r: 1 },
+    Decision { x: 2, r: 1 },
+    Decision { x: 4, r: 3 },
+    Decision { x: 5, r: 3 },
     Decision { x: 6, r: 3 },
+    Decision { x: 1, r: 0 },
+    Decision { x: 2, r: 0 },
+    Decision { x: 3, r: 0 },
+    Decision { x: 4, r: 0 },
+    Decision { x: 5, r: 0 },
+    Decision { x: 6, r: 0 },
+];
+
+const ALL_VALID_DECISIONS_FOR_REP: &'static [Decision] = &[
+    Decision { x: 2, r: 3 },
+    Decision { x: 3, r: 3 },
+    Decision { x: 3, r: 1 },
+    Decision { x: 4, r: 1 },
+    Decision { x: 5, r: 1 },
+    Decision { x: 1, r: 2 },
+    Decision { x: 2, r: 2 },
+    Decision { x: 3, r: 2 },
+    Decision { x: 4, r: 2 },
+    Decision { x: 5, r: 2 },
+    Decision { x: 6, r: 2 },
 ];
 
 impl Decision {
@@ -41,6 +53,10 @@ impl Decision {
 
     pub fn all_valid_decisions() -> &'static [Decision] {
         ALL_VALID_DECISIONS
+    }
+
+    pub fn all_valid_decisions_for_rep() -> &'static [Decision] {
+        ALL_VALID_DECISIONS_FOR_REP
     }
 
     pub fn axis_x(&self) -> usize {
@@ -73,6 +89,10 @@ impl Decision {
         }
 
         true
+    }
+
+    pub fn reverse(&self) -> Decision {
+        Decision::new(self.child_x(), (self.rot() + 2) & 0x3)
     }
 }
 
@@ -128,5 +148,33 @@ mod tests {
         assert!(Decision::new(6, 2).valid());
         assert!(Decision::new(6, 3).valid());
         assert!(!Decision::new(6, 4).valid());
+    }
+
+    #[test]
+    fn test_reverse() {
+        assert_eq!(Decision::new(3, 2), Decision::new(3, 0).reverse());
+        assert_eq!(Decision::new(4, 3), Decision::new(3, 1).reverse());
+        assert_eq!(Decision::new(3, 0), Decision::new(3, 2).reverse());
+        assert_eq!(Decision::new(2, 1), Decision::new(3, 3).reverse());
+    }
+
+    #[test]
+    fn test_decisions_for_rep() {
+        let mut expected = Vec::<Decision>::new();
+        expected.extend_from_slice(Decision::all_valid_decisions());
+        expected.sort();
+
+        assert_eq!(22, expected.len());
+
+        let mut actual = Vec::<Decision>::new();
+        actual.extend_from_slice(Decision::all_valid_decisions_for_rep());
+        assert_eq!(11, actual.len());
+        for d in Decision::all_valid_decisions_for_rep() {
+            actual.push(d.reverse());
+        }
+        actual.sort();
+        assert_eq!(22, actual.len());
+
+        assert_eq!(actual, expected);
     }
 }
