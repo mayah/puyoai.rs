@@ -1,5 +1,6 @@
 use color::PuyoColor;
 use column_puyo_list::ColumnPuyoList;
+use decision::Decision;
 use field::{self, BitField, FieldHeight, FieldIsEmpty};
 use std;
 
@@ -57,6 +58,17 @@ impl CoreField {
 
     pub fn field(&self) -> &BitField {
         &self.field
+    }
+
+    pub fn is_chigiri_decision(&self, decision: &Decision) -> bool {
+        debug_assert!(decision.valid(), "decision {:?} should be valid", decision);
+        let axis_x = decision.axis_x();
+        let child_x = decision.child_x();
+        if axis_x == child_x {
+            return false;
+        }
+
+        self.height(axis_x) != self.height(child_x)
     }
 
     pub fn is_connected(&self, x: usize, y: usize) -> bool {
@@ -131,6 +143,7 @@ mod tests {
     use super::CoreField;
     use color::PuyoColor;
     use column_puyo_list::ColumnPuyoList;
+    use decision::Decision;
     use field;
 
     #[test]
@@ -251,5 +264,25 @@ mod tests {
             "OOOOOO"));
 
         assert_eq!(cf, expected);
+    }
+
+    #[test]
+    fn test_is_chigiri_decision_1() {
+        let cf = CoreField::new();
+
+        assert!(!cf.is_chigiri_decision(&Decision::new(3, 0)));
+        assert!(!cf.is_chigiri_decision(&Decision::new(3, 1)));
+        assert!(!cf.is_chigiri_decision(&Decision::new(3, 2)));
+        assert!(!cf.is_chigiri_decision(&Decision::new(3, 3)));
+    }
+
+    #[test]
+    fn test_is_chigiri_decision_2() {
+        let cf = CoreField::from_str("..O...");
+
+        assert!(!cf.is_chigiri_decision(&Decision::new(3, 0)));
+        assert!(cf.is_chigiri_decision(&Decision::new(3, 1)));
+        assert!(!cf.is_chigiri_decision(&Decision::new(3, 2)));
+        assert!(cf.is_chigiri_decision(&Decision::new(3, 3)));
     }
 }
