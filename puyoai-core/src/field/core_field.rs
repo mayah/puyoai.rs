@@ -1,6 +1,6 @@
 use color::PuyoColor;
 use column_puyo_list::ColumnPuyoList;
-use field::{self, BitField, FieldHeight};
+use field::{self, BitField, FieldHeight, FieldIsEmpty};
 use std;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -117,6 +117,12 @@ impl CoreField {
 impl FieldHeight for CoreField {
     fn height(&self, x: usize) -> usize {
         CoreField::height(self, x)
+    }
+}
+
+impl FieldIsEmpty for CoreField {
+    fn is_empty(&self, x: usize, y: usize) -> bool {
+        CoreField::is_empty(self, x, y)
     }
 }
 
