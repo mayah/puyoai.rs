@@ -3,7 +3,7 @@ use kumipuyo::Kumipuyo;
 use rand::{thread_rng, Rng};
 use std::vec::Vec;
 
-pub fn generate_random_puyocolor_sequence(size: usize) -> Vec<Kumipuyo<PuyoColor>> {
+pub fn generate_random_puyocolor_sequence(size: usize) -> Vec<Kumipuyo> {
     let mut rng = thread_rng();
     let mut vs = Vec::new();
     for _ in 0 .. size {
@@ -15,7 +15,7 @@ pub fn generate_random_puyocolor_sequence(size: usize) -> Vec<Kumipuyo<PuyoColor
     vs
 }
 
-pub fn generate_ac_puyo2_sequence() -> Vec<Kumipuyo<PuyoColor>> {
+pub fn generate_ac_puyo2_sequence() -> Vec<Kumipuyo> {
     let mut vs: Vec<PuyoColor> = Vec::new();
     for c in &[PuyoColor::RED, PuyoColor::BLUE, PuyoColor::YELLOW, PuyoColor::GREEN] {
         for _ in 0 .. 64 {
@@ -27,7 +27,7 @@ pub fn generate_ac_puyo2_sequence() -> Vec<Kumipuyo<PuyoColor>> {
     rng.shuffle(&mut vs[0..64 * 3]);
     rng.shuffle(&mut vs[6..64 * 4]);
 
-    let mut ks: Vec<Kumipuyo<PuyoColor>> = Vec::new();
+    let mut ks: Vec<Kumipuyo> = Vec::new();
     for i in 0 .. 128 {
         let axis = vs[2 * i];
         let child = vs[2 * i + 1];

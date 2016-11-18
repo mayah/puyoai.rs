@@ -1,14 +1,15 @@
-use color::Color;
+use color::{self, Color};
 
-#[derive(Debug, PartialEq)]
-pub struct Kumipuyo<C: Color> {
-    pub axis: C,
-    pub child: C,
+// Pair is a pair of falling puyo.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Pair<C: Color> {
+    axis: C,
+    child: C,
 }
 
-impl<C: Color> Kumipuyo<C> {
-    pub fn new(axis: C, child: C) -> Kumipuyo<C> {
-        Kumipuyo {
+impl<C: Color> Pair<C> {
+    pub fn new(axis: C, child: C) -> Pair<C> {
+        Pair {
             axis: axis,
             child: child,
         }
@@ -23,6 +24,12 @@ impl<C: Color> Kumipuyo<C> {
     }
 }
 
+/// A pair of PuyoColor.
+pub type Kumipuyo = Pair<color::PuyoColor>;
+
+/// A pair of RealColor.
+pub type Kumireal = Pair<color::RealColor>;
+
 #[cfg(test)]
 mod tests {
     use super::Kumipuyo;
@@ -30,7 +37,7 @@ mod tests {
 
     #[test]
     fn test_constructor() {
-        let kp = Kumipuyo::<PuyoColor>::new(PuyoColor::RED, PuyoColor::BLUE);
+        let kp = Kumipuyo::new(PuyoColor::RED, PuyoColor::BLUE);
         assert_eq!(PuyoColor::RED, kp.axis());
         assert_eq!(PuyoColor::BLUE, kp.child());
     }
