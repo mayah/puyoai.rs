@@ -25,8 +25,8 @@ impl ColumnPuyo {
     /// Returns true if ColumnPuyo is valid. x should be 0 < x < 7.
     ///
     /// ```
-    /// use puyocore::color::PuyoColor;
-    /// use puyocore::column_puyo::ColumnPuyo;
+    /// use puyoai_core::color::PuyoColor;
+    /// use puyoai_core::column_puyo::ColumnPuyo;
     /// let cp0 = ColumnPuyo::new(0, PuyoColor::RED);
     /// let cp1 = ColumnPuyo::new(1, PuyoColor::RED);
     /// let cp6 = ColumnPuyo::new(1, PuyoColor::RED);

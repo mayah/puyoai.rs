@@ -1,10 +1,10 @@
 #![feature(test)]
 
-extern crate puyocore;
+extern crate puyoai_core;
 extern crate test;
 
 use test::Bencher;
-use puyocore::field::BitField;
+use puyoai_core::field::BitField;
 
 #[bench]
 fn simulate_19rensa(b: &mut Bencher) {

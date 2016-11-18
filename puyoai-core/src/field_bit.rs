@@ -225,7 +225,7 @@ impl FieldBit {
     /// # Examples
     ///
     /// ```
-    /// use puyocore::field_bit::FieldBit;
+    /// use puyoai_core::field_bit::FieldBit;
     /// let fb = FieldBit::from_str(concat!(
     ///     "......",
     ///     "..11..",
