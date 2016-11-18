@@ -20,6 +20,7 @@ pub mod kumipuyo;
 pub mod pattern;
 pub mod position;
 pub mod probability;
+pub mod rensa_detector;
 pub mod rensa_result;
 #[cfg(all(target_feature = "avx2", target_feature="bmi2"))]
 pub mod rensa_tracker;
