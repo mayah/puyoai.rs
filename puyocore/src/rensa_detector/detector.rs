@@ -3,6 +3,63 @@ use column_puyo_list::ColumnPuyoList;
 use color::{PuyoColor, NUM_PUYO_COLORS};
 use rensa_detector::PurposeForFindingRensa;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Mode {
+    Drop,
+    Float,
+}
+
+pub struct RensaDetector {
+    mode: Mode,
+    max_puyo_for_key: usize,
+    max_puyo_for_fire: usize,
+    max_height: usize,
+}
+
+impl RensaDetector {
+    pub fn new(mode: Mode, max_puyo_for_key: usize, max_puyo_for_fire: usize, max_height: usize) -> RensaDetector {
+        RensaDetector {
+            mode: mode,
+            max_puyo_for_key: max_puyo_for_key,
+            max_puyo_for_fire: max_puyo_for_fire,
+            max_height: max_height,
+        }
+    }
+
+    pub fn default_drop_strategy() -> RensaDetector {
+        RensaDetector::new(Mode::Drop, 3, 3, 12)
+    }
+
+    pub fn default_float_strategy() -> RensaDetector {
+        RensaDetector::new(Mode::Float, 3, 3, 13)
+    }
+
+    pub fn detect<Callback>(&self,
+                            original_field: &CoreField,
+                            purpose: PurposeForFindingRensa,
+                            prohibits: &[bool],
+                            callback: Callback)
+                            where Callback: FnMut(CoreField, &ColumnPuyoList) {
+        let max_complement_puyo = {
+            match purpose {
+                PurposeForFindingRensa::ForKey => self.max_puyo_for_key,
+                PurposeForFindingRensa::ForFire => self.max_puyo_for_fire,
+            }
+        };
+
+        match self.mode {
+            Mode::Drop => {
+                detect_by_drop(original_field, prohibits, purpose,
+                               max_complement_puyo, self.max_height, callback)
+            },
+            Mode::Float => {
+                unimplemented!()
+            }
+        }
+    }
+}
+
+/// Detects rensa by `drop` strategy.
 pub fn detect_by_drop<Callback>(original_field: &CoreField,
                                 prohibits: &[bool],
                                 purpose: PurposeForFindingRensa,
