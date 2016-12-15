@@ -14,14 +14,10 @@ pub use self::field::FieldHeight;
 pub use self::field::FieldIsEmpty;
 pub use self::field_with_height::FieldWithHeight;
 
-#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
 pub mod bit_field;
-#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
 pub mod core_field;
 
-#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
 pub use self::bit_field::BitField;
-#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
 pub use self::core_field::CoreField;
 
 #[cfg(test)]

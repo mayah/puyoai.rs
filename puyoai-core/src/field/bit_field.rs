@@ -1,14 +1,21 @@
 use color::{Color, PuyoColor};
 use field::{self, FieldIsEmpty, PuyoPlainField};
 use field_bit::FieldBit;
-use field_bit_256::FieldBit256;
-use frame;
-use rensa_result::RensaResult;
-use rensa_tracker::{RensaTracker, RensaNonTracker};
-use score;
-use sseext;
 use std::{self, mem};
 use x86intrin::*;
+
+#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
+use frame;
+#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
+use rensa_result::RensaResult;
+#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
+use rensa_tracker::{RensaTracker, RensaNonTracker};
+#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
+use score;
+#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
+use sseext;
+#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
+use field_bit_256::FieldBit256;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct BitField {
@@ -175,6 +182,25 @@ impl BitField {
         !single.expand_edge().mask(color_bits).not_mask(single).is_empty()
     }
 
+    pub fn escape_invisible(&mut self) -> BitField {
+        let mut escaped = BitField::uninitialized();
+        for i in 0 .. 3 {
+            escaped.m[i] = self.m[i].not_masked_field_13();
+            self.m[i] = self.m[i].masked_field_13();
+        }
+
+        escaped
+    }
+
+    pub fn recover_invisible(&mut self, bf: &BitField) {
+        for i in 0 .. 3 {
+            self.m[i].set_all(bf.m[i]);
+        }
+    }
+}
+
+#[cfg(all(target_feature = "avx2", target_feature = "bmi2"))]
+impl BitField {
     pub fn simulate(&mut self) -> RensaResult {
         let mut tracker = RensaNonTracker::new();
         self.simulate_with_tracker(&mut tracker)
@@ -228,22 +254,6 @@ impl BitField {
 
         self.recover_invisible(&escaped);
         current_chain - 1
-    }
-
-    pub fn escape_invisible(&mut self) -> BitField {
-        let mut escaped = BitField::uninitialized();
-        for i in 0 .. 3 {
-            escaped.m[i] = self.m[i].not_masked_field_13();
-            self.m[i] = self.m[i].masked_field_13();
-        }
-
-        escaped
-    }
-
-    pub fn recover_invisible(&mut self, bf: &BitField) {
-        for i in 0 .. 3 {
-            self.m[i].set_all(bf.m[i]);
-        }
     }
 
     pub fn vanish_fast<T: RensaTracker>(&self, current_chain: usize, erased: &mut FieldBit, tracker: &mut T) -> bool {
@@ -454,8 +464,6 @@ mod tests {
     use color::{self, Color, PuyoColor};
     use field;
     use field_bit::FieldBit;
-    use frame;
-    use rensa_tracker::RensaNonTracker;
 
     struct SimulationTestcase {
         field: BitField,
@@ -642,6 +650,16 @@ mod tests {
 
         assert!(!bf.is_connected(6, 12));
     }
+}
+
+#[cfg(all(test, target_feature = "avx2", target_feature = "bmi2"))]
+mod tests_simulation {
+    use super::BitField;
+    use color::{self, Color, PuyoColor};
+    use field;
+    use field_bit::FieldBit;
+    use frame;
+    use rensa_tracker::RensaNonTracker;
 
     #[test]
     fn test_simulate() {
