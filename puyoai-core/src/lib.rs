@@ -22,7 +22,6 @@ pub mod position;
 pub mod probability;
 pub mod rensa_detector;
 pub mod rensa_result;
-#[cfg(all(target_feature = "avx2", target_feature="bmi2"))]
 pub mod rensa_tracker;
 pub mod score;
 pub mod small_int_set;

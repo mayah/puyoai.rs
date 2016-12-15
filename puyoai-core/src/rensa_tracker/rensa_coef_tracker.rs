@@ -37,7 +37,6 @@ impl RensaTracker for RensaCoefTracker {
 #[cfg(test)]
 mod tests {
     use super::RensaCoefTracker;
-    use field::BitField;
     use rensa_tracker::RensaTracker;
 
     #[test]
@@ -50,6 +49,13 @@ mod tests {
         assert_eq!(4, tracker.num_erased[3]);
         assert_eq!(0, tracker.num_erased[4]);
     }
+}
+
+#[cfg(all(test, target_feature = "avx2", target_feature="bmi2"))]
+mod tests_for_avx2 {
+    use super::RensaCoefTracker;
+    use rensa_tracker::RensaTracker;
+    use field::BitField;
 
     #[test]
     fn test_simulate() {
