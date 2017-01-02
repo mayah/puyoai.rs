@@ -465,14 +465,6 @@ mod tests {
     use field;
     use field_bit::FieldBit;
 
-    struct SimulationTestcase {
-        field: BitField,
-        chain: usize,
-        score: usize,
-        frame: usize,
-        quick: bool,
-    }
-
     #[test]
     fn test_initial() {
         let bf = BitField::new();
@@ -655,11 +647,17 @@ mod tests {
 #[cfg(all(test, target_feature = "avx2", target_feature = "bmi2"))]
 mod tests_simulation {
     use super::BitField;
-    use color::{self, Color, PuyoColor};
-    use field;
     use field_bit::FieldBit;
     use frame;
     use rensa_tracker::RensaNonTracker;
+
+    struct SimulationTestcase {
+        field: BitField,
+        chain: usize,
+        score: usize,
+        frame: usize,
+        quick: bool,
+    }
 
     #[test]
     fn test_simulate() {

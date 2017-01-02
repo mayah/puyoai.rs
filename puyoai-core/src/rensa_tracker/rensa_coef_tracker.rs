@@ -54,7 +54,6 @@ mod tests {
 #[cfg(all(test, target_feature = "avx2", target_feature="bmi2"))]
 mod tests_for_avx2 {
     use super::RensaCoefTracker;
-    use rensa_tracker::RensaTracker;
     use field::BitField;
 
     #[test]
