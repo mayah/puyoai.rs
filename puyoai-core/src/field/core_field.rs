@@ -58,6 +58,11 @@ impl CoreField {
         self.field.is_empty(x, y)
     }
 
+    /// Returns true if ZENKESHI.
+    pub fn is_all_cleared(&self) -> bool {
+        self.field.is_all_cleared()
+    }
+
     pub fn field(&self) -> &BitField {
         &self.field
     }

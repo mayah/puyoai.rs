@@ -88,6 +88,12 @@ impl BitField {
         }
     }
 
+    /// Returns true if ZENKESHI.
+    pub fn is_all_cleared(&self) -> bool {
+        (self.m[0] | self.m[1] | self.m[2]).masked_field_13().is_empty()
+    }
+
+
     pub fn count_connected(&self, x: usize, y: usize) -> usize {
         if y > field::HEIGHT {
             return 0
@@ -519,6 +525,19 @@ mod tests {
         assert!(bf.is_empty(4, 1));
         assert!(bf.is_empty(5, 1));
         assert!(bf.is_empty(6, 1));
+    }
+
+    #[test]
+    fn test_is_all_cleared() {
+        let mut bf = BitField::new();
+        assert!(bf.is_all_cleared());
+
+        bf.set_color(3, 1, PuyoColor::RED);
+        assert!(!bf.is_all_cleared());
+
+        bf.set_color(3, 1, PuyoColor::EMPTY);
+        bf.set_color(1, 14, PuyoColor::RED);
+        assert!(bf.is_all_cleared());
     }
 
     #[test]
