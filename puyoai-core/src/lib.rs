@@ -20,6 +20,7 @@ pub mod kumipuyo;
 pub mod pattern;
 pub mod position;
 pub mod probability;
+pub mod puyop;
 pub mod rensa_detector;
 pub mod rensa_result;
 pub mod rensa_tracker;
