@@ -1,0 +1,6 @@
+[package]
+name = "puyoai-data"
+version = "0.1.0"
+authors = ["mayah"]
+
+[dependencies]
