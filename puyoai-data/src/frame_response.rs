@@ -26,7 +26,7 @@ impl FrameResponse {
         let mut result = String::new();
 
         result.push_str(&format!("ID={}", self.frame_id));
-        if self.decision.valid() {
+        if self.decision.is_valid() {
             result.push_str(&format!(" X={}", self.decision.axis_x()));
             result.push_str(&format!(" R={}", self.decision.rot()));
         }

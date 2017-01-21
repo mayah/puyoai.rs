@@ -2,7 +2,7 @@ use field::{FieldHeight, FieldIsEmpty};
 use decision::Decision;
 
 pub fn is_reachable<F: FieldHeight + FieldIsEmpty>(field: &F, decision: &Decision) -> bool {
-    debug_assert!(decision.valid());
+    debug_assert!(decision.is_valid());
 
     const CHECKER: &'static [&'static [usize]] = &[
         &[3, 2, 1, 0],

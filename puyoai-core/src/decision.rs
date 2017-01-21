@@ -80,7 +80,7 @@ impl Decision {
         self.r
     }
 
-    pub fn valid(&self) -> bool {
+    pub fn is_valid(&self) -> bool {
         if self.x <= 0 || 6 < self.x || 4 <= self.r {
             return false;
         }
@@ -131,23 +131,23 @@ mod tests {
 
     #[test]
     fn test_valid() {
-        assert!(Decision::new(1, 0).valid());
-        assert!(Decision::new(1, 1).valid());
-        assert!(Decision::new(1, 2).valid());
-        assert!(!Decision::new(1, 3).valid());
-        assert!(!Decision::new(1, 4).valid());
+        assert!(Decision::new(1, 0).is_valid());
+        assert!(Decision::new(1, 1).is_valid());
+        assert!(Decision::new(1, 2).is_valid());
+        assert!(!Decision::new(1, 3).is_valid());
+        assert!(!Decision::new(1, 4).is_valid());
 
-        assert!(Decision::new(2, 0).valid());
-        assert!(Decision::new(2, 1).valid());
-        assert!(Decision::new(2, 2).valid());
-        assert!(Decision::new(2, 3).valid());
-        assert!(!Decision::new(2, 4).valid());
+        assert!(Decision::new(2, 0).is_valid());
+        assert!(Decision::new(2, 1).is_valid());
+        assert!(Decision::new(2, 2).is_valid());
+        assert!(Decision::new(2, 3).is_valid());
+        assert!(!Decision::new(2, 4).is_valid());
 
-        assert!(Decision::new(6, 0).valid());
-        assert!(!Decision::new(6, 1).valid());
-        assert!(Decision::new(6, 2).valid());
-        assert!(Decision::new(6, 3).valid());
-        assert!(!Decision::new(6, 4).valid());
+        assert!(Decision::new(6, 0).is_valid());
+        assert!(!Decision::new(6, 1).is_valid());
+        assert!(Decision::new(6, 2).is_valid());
+        assert!(Decision::new(6, 3).is_valid());
+        assert!(!Decision::new(6, 4).is_valid());
     }
 
     #[test]

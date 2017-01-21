@@ -68,7 +68,7 @@ impl CoreField {
     }
 
     pub fn is_chigiri_decision(&self, decision: &Decision) -> bool {
-        debug_assert!(decision.valid(), "decision {:?} should be valid", decision);
+        debug_assert!(decision.is_valid(), "decision {:?} should be valid", decision);
         let axis_x = decision.axis_x();
         let child_x = decision.child_x();
         if axis_x == child_x {
