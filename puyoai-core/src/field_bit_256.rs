@@ -14,8 +14,8 @@ impl FieldBit256 {
         }
     }
 
-    pub fn uninitialized() -> FieldBit256 {
-        unsafe { std::mem::uninitialized::<FieldBit256>() }
+    pub unsafe fn uninitialized() -> FieldBit256 {
+        std::mem::uninitialized::<FieldBit256>()
     }
 
     pub fn empty() -> FieldBit256 {
@@ -253,7 +253,7 @@ mod tests {
             FieldBit256::from_low_high(f, f)
         };
 
-        let mut vanishing = FieldBit256::uninitialized();
+        let mut vanishing = unsafe { FieldBit256::uninitialized() };
         assert!(fb256.find_vanishing_bits(&mut vanishing));
 
         for x in 1 .. field::WIDTH + 1 {
@@ -275,7 +275,7 @@ mod tests {
             FieldBit256::from_low_high(f, f)
         };
 
-        let mut vanishing = FieldBit256::uninitialized();
+        let mut vanishing = unsafe { FieldBit256::uninitialized() };
         assert!(!fb256.find_vanishing_bits(&mut vanishing));
 
         for x in 1 .. field::WIDTH + 1 {

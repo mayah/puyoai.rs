@@ -14,8 +14,8 @@ impl FieldBit {
         }
     }
 
-    pub fn uninitialized() -> FieldBit {
-        unsafe { std::mem::uninitialized::<FieldBit>() }
+    pub unsafe fn uninitialized() -> FieldBit {
+        std::mem::uninitialized::<FieldBit>()
     }
 
     pub fn empty() -> FieldBit {
@@ -494,7 +494,7 @@ mod tests {
             "11.111",
             "1...1."));
 
-        let mut vanishing = FieldBit::uninitialized();
+        let mut vanishing = unsafe { FieldBit::uninitialized() };
         assert!(f.has_vanishing_bits());
         assert!(f.find_vanishing_bits(&mut vanishing));
 
@@ -513,7 +513,7 @@ mod tests {
             ".....1",
             ".1.11."));
 
-        let mut vanishing = FieldBit::uninitialized();
+        let mut vanishing = unsafe { FieldBit::uninitialized() };
         assert!(!f.has_vanishing_bits());
         assert!(!f.find_vanishing_bits(&mut vanishing));
 

@@ -31,7 +31,7 @@ impl BitField {
         }
     }
 
-    pub fn uninitialized() -> BitField {
+    pub unsafe fn uninitialized() -> BitField {
         BitField {
             m: [FieldBit::uninitialized(), FieldBit::uninitialized(), FieldBit::uninitialized()]
         }
@@ -189,7 +189,7 @@ impl BitField {
     }
 
     pub fn escape_invisible(&mut self) -> BitField {
-        let mut escaped = BitField::uninitialized();
+        let mut escaped = unsafe { BitField::uninitialized() };
         for i in 0 .. 3 {
             escaped.m[i] = self.m[i].not_masked_field_13();
             self.m[i] = self.m[i].masked_field_13();
@@ -226,7 +226,7 @@ impl BitField {
         let mut current_chain = 1;
 
         loop {
-            let mut erased = FieldBit::uninitialized();
+            let mut erased = unsafe { FieldBit::uninitialized() };
             let nth_chain_score = self.vanish(current_chain, &mut erased, tracker);
             if nth_chain_score == 0 {
                 break;
@@ -252,7 +252,7 @@ impl BitField {
         let escaped = self.escape_invisible();
         let mut current_chain = 1;
 
-        let mut erased = FieldBit::uninitialized();
+        let mut erased = unsafe { FieldBit::uninitialized() };
         while self.vanish_fast(current_chain, &mut erased, tracker) {
             current_chain += 1;
             self.drop_after_vanish_fast(erased, tracker);
@@ -271,7 +271,7 @@ impl BitField {
             let t = self.m[1].andnot(self.m[2]).masked_field_12();
             let mask = FieldBit256::from_low_high(self.m[0].andnot(t), self.m[0] & t);
 
-            let mut vanishing = FieldBit256::uninitialized();
+            let mut vanishing = unsafe { FieldBit256::uninitialized() };
             if mask.find_vanishing_bits(&mut vanishing) {
                 erased256.set_all(vanishing);
                 did_erase = true;
@@ -283,7 +283,7 @@ impl BitField {
             let t = (self.m[1] & self.m[2]).masked_field_12();
             let mask = FieldBit256::from_low_high(self.m[0].andnot(t), self.m[0] & t);
 
-            let mut vanishing = FieldBit256::uninitialized();
+            let mut vanishing = unsafe { FieldBit256::uninitialized() };
             if mask.find_vanishing_bits(&mut vanishing) {
                 erased256.set_all(vanishing);
                 did_erase = true;
@@ -323,7 +323,7 @@ impl BitField {
             let low_mask = self.m[0].andnot(t);
 
             let mask = FieldBit256::from_low_high(low_mask, high_mask);
-            let mut vanishing = FieldBit256::uninitialized();
+            let mut vanishing = unsafe { FieldBit256::uninitialized() };
             if !mask.find_vanishing_bits(&mut vanishing) {
                 continue;
             }
@@ -740,7 +740,7 @@ mod tests_simulation {
             "1111..",
             "11111."));
 
-        let mut vanishing = FieldBit::uninitialized();
+        let mut vanishing = unsafe { FieldBit::uninitialized() };
         let mut tracker = RensaNonTracker::new();
         assert!(bf.vanish_fast(1, &mut vanishing, &mut tracker));
         assert_eq!(expected, vanishing);
@@ -761,7 +761,7 @@ mod tests_simulation {
             ".1111.",
             ".1111."));
 
-        let mut vanishing = FieldBit::uninitialized();
+        let mut vanishing = unsafe { FieldBit::uninitialized() };
         let mut tracker = RensaNonTracker::new();
         assert!(bf.vanish_fast(1, &mut vanishing, &mut tracker));
         assert_eq!(expected, vanishing);
@@ -787,7 +787,7 @@ mod tests_simulation {
             "OOOOOO",
             "OOOOOO"));
 
-        let mut vanishing = FieldBit::uninitialized();
+        let mut vanishing = unsafe { FieldBit::uninitialized() };
         let mut tracker = RensaNonTracker::new();
         assert!(!bf.vanish_fast(1, &mut vanishing, &mut tracker));
         assert_eq!(bf.vanish(1, &mut vanishing, &mut tracker), 0);
