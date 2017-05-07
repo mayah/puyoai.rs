@@ -49,32 +49,27 @@ impl<C: Color> PlainField<C> {
         field
     }
 
+    #[inline]
     pub fn color(&self, x: usize, y: usize) -> C {
-        // self.field[x as usize][y as usize]
-
-        debug_assert!(x < 8);
-        debug_assert!(y < 16);
-        unsafe {
-            *self.field.get_unchecked(x).get_unchecked(y)
-        }
+        debug_assert!(x < 8 && y < 16, "x={} y={}", x, y);
+        self.field[x][y]
     }
 
-    pub fn set_color(&mut self, x: usize, y: usize, color: C) {
-        // self.field[x as usize][y as usize] = color
+    #[inline]
+    pub fn set_color(&mut self, x: usize, y: usize, c: C) {
+        debug_assert!(x < 8 && y < 16, "x={} y={} c={}", x, y, c);
 
-        debug_assert!(x < 8);
-        debug_assert!(y < 16);
-        unsafe {
-            *self.field.get_unchecked_mut(x).get_unchecked_mut(y) = color
-        }
+        self.field[x][y] = c
     }
 
+    #[inline]
     pub fn is_empty(&self, x: usize, y: usize) -> bool {
         self.color(x, y) == C::empty_color()
     }
 
-    pub fn is_color(&self, x: usize, y: usize, color: C) -> bool {
-        self.color(x, y) == color
+    #[inline]
+    pub fn is_color(&self, x: usize, y: usize, c: C) -> bool {
+        self.color(x, y) == c
     }
 
     // Returns the number of max drops.
@@ -424,16 +419,19 @@ impl<C: Color> PlainField<C> {
 }
 
 impl<C: Color> Field for PlainField<C> {
+    #[inline]
     fn new() -> PlainField<C> {
         PlainField::<C>::new()
     }
 
+    #[inline]
     fn calculate_height(&self, height: &mut [u16]) {
         PlainField::<C>::calculate_height(self, height)
     }
 }
 
 impl<C: Color> FieldIsEmpty for PlainField<C> {
+    #[inline]
     fn is_empty(&self, x: usize, y: usize) -> bool {
         PlainField::<C>::is_empty(self, x, y)
     }
