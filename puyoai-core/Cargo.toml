@@ -5,4 +5,4 @@ authors = ["mayah"]
 
 [dependencies]
 rand = "^0.3.14"
-x86intrin = { git = "https://github.com/mayah/x86intrin.git" }
+x86intrin = "^0.4.2"
