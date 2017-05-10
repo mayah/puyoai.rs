@@ -1,0 +1,8 @@
+[package]
+name = "puyoai-server"
+version = "0.1.0"
+authors = ["mayah"]
+
+[dependencies]
+puyoai-core = { path = "../puyoai-core" }
+puyoai-data = { path = "../puyoai-data" }
